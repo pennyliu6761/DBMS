@@ -29,13 +29,16 @@
 
     -- 塞入充滿缺陷的原始資料
     INSERT INTO raw_student_courses VALUES
-    ('S001', '王小明', '工業工程學系', '劉鎮豪', 'CS101-程式設計(90分), DB201-資料庫管理(85分)'),
-    ('S002', '李大華', '工業工程學系', '劉鎮豪', 'CS101-程式設計(70分)');
+    ('S001', '王小明', '工業工程與管理學系', '坂本', 'CS101-程式設計(90分), DB201-資料庫管理(85分)'),
+    ('S002', '李大華', '工業工程與管理學系', '坂本', 'CS101-程式設計(70分)');
     ```
+    
+    <img width="971" height="390" alt="image" src="https://github.com/user-attachments/assets/a5cc4b9f-939e-4dff-b6f8-cb59e1293ef2" />
+    <img width="680" height="102" alt="image" src="https://github.com/user-attachments/assets/0265c375-b853-46aa-9c39-85aad615e097" />
 
-    > [!WARNING]
-    > **為什麼這被稱為 0NF (未正規化)？**
-    > 觀察 `courses_taken` 這一欄，裡面居然用逗號塞了兩門課，連課程名稱和成績都混在一起！這違反了關聯式資料庫最基本的規則：**欄位不可分割 (Atomic)**。在這種狀態下，你完全無法用 SQL 語法算出「程式設計的平均分數」或是「誰被當掉」。
+> [!WARNING]
+> **為什麼這被稱為 0NF (未正規化)？**
+> 觀察 `courses_taken` 這一欄，裡面居然用逗號塞了兩門課，連課程名稱和成績都混在一起！這違反了關聯式資料庫最基本的規則：**欄位不可分割 (Atomic)**。在這種狀態下，你完全無法用 SQL 語法算出「程式設計的平均分數」或是「誰被當掉」。
 
 ---
 
@@ -62,14 +65,17 @@
     -- 實務上通常透過 Python 等程式語言來清理 0NF 字串並寫入 1NF
     -- 這裡我們直接手動模擬拆解後的乾淨資料寫入：
     INSERT INTO table_1nf VALUES
-    ('S001', '王小明', '工業工程學系', '劉鎮豪', 'CS101', '程式設計', 90),
-    ('S001', '王小明', '工業工程學系', '劉鎮豪', 'DB201', '資料庫管理', 85),
-    ('S002', '李大華', '工業工程學系', '劉鎮豪', 'CS101', '程式設計', 70);
+    ('S001', '王小明', '工業工程與管理學系', '坂本', 'CS101', '程式設計', 90),
+    ('S001', '王小明', '工業工程與管理學系', '坂本', 'DB201', '資料庫管理', 85),
+    ('S002', '李大華', '工業工程與管理學系', '坂本', 'CS101', '程式設計', 70);
     ```
+    
+    <img width="840" height="431" alt="image" src="https://github.com/user-attachments/assets/ec0ad4cd-0cbd-4a71-815a-25aaf5e1f228" />
+    <img width="578" height="101" alt="image" src="https://github.com/user-attachments/assets/6d1695f5-dd34-4fd2-9ffb-37a1bbb125d4" />
 
-    > [!TIP]
-    > **1NF 達標了，但有什麼問題？**
-    > 現在我們可以用 SQL 算平均分數了！但是，你可以看到王小明修了兩門課，所以他的「姓名」、「科系」和「系主任」**被迫重複寫了兩次**。這會造成嚴重的「更新異常 (Update Anomaly)」：如果系主任換人了，你必須更新好幾筆紀錄。
+> [!TIP]
+> **1NF 達標了，但有什麼問題？**
+> 現在我們可以用 SQL 算平均分數了！但是，你可以看到王小明修了兩門課，所以他的「姓名」、「科系」和「系主任」**被迫重複寫了兩次**。這會造成嚴重的「更新異常 (Update Anomaly)」：如果系主任換人了，你必須更新好幾筆紀錄。
 
 ---
 
@@ -94,8 +100,8 @@
         dept_head VARCHAR(50)
     );
     INSERT INTO students_2nf VALUES 
-    ('S001', '王小明', '工業工程學系', '劉鎮豪'),
-    ('S002', '李大華', '工業工程學系', '劉鎮豪');
+    ('S001', '王小明', '工業工程與管理學系', '坂本'),
+    ('S002', '李大華', '工業工程與管理學系', '坂本');
 
     -- 2. 建立課程表 (只留依賴 course_id 的欄位)
     CREATE TABLE courses_2nf (
@@ -118,6 +124,11 @@
     ('S001', 'CS101', 90), ('S001', 'DB201', 85), ('S002', 'CS101', 70);
     ```
 
+    <img width="757" height="675" alt="image" src="https://github.com/user-attachments/assets/92669d60-3916-4456-b8ba-c8bc866a1b92" />
+    <img width="387" height="78" alt="image" src="https://github.com/user-attachments/assets/d557f5f0-650a-4547-9e53-30ab8897297b" />
+    <img width="184" height="63" alt="image" src="https://github.com/user-attachments/assets/5e604b95-d06a-4157-b11a-ab7973ace744" />
+    <img width="201" height="92" alt="image" src="https://github.com/user-attachments/assets/63a290e3-d33a-47f5-890f-ea842369a775" />
+
 ---
 
 ## 💎 步驟三：第三正規形 (3NF) - 消除遞移相依
@@ -138,7 +149,7 @@
         department VARCHAR(50) PRIMARY KEY,
         dept_head VARCHAR(50)
     );
-    INSERT INTO departments_3nf VALUES ('工業工程學系', '劉鎮豪');
+    INSERT INTO departments_3nf VALUES ('工業工程與管理學系', '坂本');
 
     -- 2. 更新學生表，移除 dept_head，並加上外鍵指向系所表
     CREATE TABLE students_3nf (
@@ -148,9 +159,13 @@
         FOREIGN KEY (department) REFERENCES departments_3nf(department)
     );
     INSERT INTO students_3nf VALUES 
-    ('S001', '王小明', '工業工程學系'), 
-    ('S002', '李大華', '工業工程學系');
+    ('S001', '王小明', '工業工程與管理學系'), 
+    ('S002', '李大華', '工業工程與管理學系');
     ```
+    
+    <img width="781" height="409" alt="image" src="https://github.com/user-attachments/assets/37dac780-d95f-4f1e-beb8-005a55330aba" />
+    <img width="228" height="61" alt="image" src="https://github.com/user-attachments/assets/88d6db5b-dcb2-4487-a127-546ada18ce01" />
+    <img width="311" height="79" alt="image" src="https://github.com/user-attachments/assets/39957dbc-cd8f-46e3-b28b-02be56c741d1" />
 
 ---
 
@@ -160,7 +175,9 @@
 
 1. 在 Workbench 頂部選單選擇 **Database** -> **Reverse Engineer...**。
 2. 一路點擊 **Next**，勾選我們剛才建立的 `school_demo` 資料庫。
+
+   <img width="515" height="254" alt="image" src="https://github.com/user-attachments/assets/2d329d54-d15b-44e1-8390-7074e2e33046" />
+
 3. 執行到 **Finish** 後，你會得到一份 EER 關聯圖。
-4. 在畫布上，把我們剛才建立的 2NF 和 3NF 的表拖曳排好，你可以清楚地向同學展示：
-    - 從原本臃腫的一張大表，變成了 `departments_3nf` -> `students_3nf` -> `grades_2nf` <- `courses_2nf` 的完美星型/雪花型架構！
-    - 資料再也不會異常重複，且擴充性極佳！
+
+   <img width="909" height="615" alt="image" src="https://github.com/user-attachments/assets/e18cc590-b0f4-4bed-a224-e9268f4340e0" />
