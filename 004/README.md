@@ -55,6 +55,8 @@
 
 2. 點擊閃電圖示 ⚡ 執行。
 
+   <img width="716" height="157" alt="image" src="https://github.com/user-attachments/assets/e4b726d3-3988-41cb-be1e-b155c9978878" />
+
 ### 2. 建立學生表 (`students`) 並設定外鍵約束
 
 1. 接著輸入以下語法建立學生表：
@@ -73,6 +75,8 @@
 
 2. 點擊閃電圖示 ⚡ 執行。
 
+   <img width="709" height="241" alt="image" src="https://github.com/user-attachments/assets/7f5b4a4a-2f91-44e9-b7d7-0c7c9ef8ffde" />
+
 > [!TIP]
 > **什麼是外鍵約束 (Constraint)？**
 > 這是一種資料庫的防呆機制。一旦設定了外鍵，如果你試圖在學生表中新增一個 `dept_id` 為 `XYZ` (不存在於科系表的代號) 的學生，資料庫會**直接報錯並拒絕新增**，確保資料的絕對完整性 (Referential Integrity)！
@@ -86,7 +90,7 @@
 我們現在試著用 GUI 建立一張「課程表 (`courses`)」：
 
 1. 在 MySQL Workbench 左側的 **SCHEMAS** 面板中，展開你的資料庫 (例如 `demo_db`)。
-2. 對著 **Tables** 資料夾按右鍵，選擇 **Create Table...**。
+2. 對著 **Tables** 資料夾按右鍵，選擇 **Create Table**。
 3. **設定基本屬性：**
     - 在中間上方的 `Table Name` 輸入 `courses`。
 4. **設定欄位 (Columns)：**
@@ -94,11 +98,22 @@
         - 第一列輸入 `course_id`，勾選 **PK** (主鍵) 與 **NN** (必填)。Datatype 選 `VARCHAR(10)`。
         - 第二列輸入 `course_name`，勾選 **NN**。Datatype 選 `VARCHAR(50)`。
         - 第三列輸入 `credits` (學分)，Datatype 選 `INT`。
+      
+   <img width="507" height="230" alt="image" src="https://github.com/user-attachments/assets/b06a974d-61d7-4c3c-87a4-54965996c450" />
+
 5. **套用變更：**
     - 設定完成後，點擊右下角的 **Apply** 按鈕。
     - Workbench 會自動幫你把剛剛點選的介面，**翻譯成對應的 SQL 語法**讓你確認！
+   
+   <img width="693" height="260" alt="image" src="https://github.com/user-attachments/assets/0218d433-ffa4-4b46-a8df-5666a70c6d25" />
+
     - 確認無誤後，再次點擊 **Apply**，接著按 **Finish**。
+   
+   <img width="400" height="159" alt="image" src="https://github.com/user-attachments/assets/3440794a-c8c2-4a3e-9aba-d629f5ac7ea1" />
+
 6. 回到左側 SCHEMAS 面板，點擊重整按鈕 🔄，你就會看到 `courses` 資料表已經建好囉！
+
+   <img width="201" height="315" alt="image" src="https://github.com/user-attachments/assets/3446e052-e462-4d45-a004-9947e2355b30" />
 
 > [!TIP]
 > **Workbench 縮寫小字典：**
@@ -114,7 +129,21 @@
 想確認我們剛剛建立的資料表之間是否有正確連線嗎？Workbench 可以幫我們一鍵產生漂亮的關聯圖！
 
 1. 點選 Workbench 最上方選單列的 **Database** -> **Reverse Engineer...** (反向工程)。
+
+   <img width="430" height="217" alt="image" src="https://github.com/user-attachments/assets/196d8ddb-6a35-4d8b-9d2e-3c5ba09f5827" />
+   
 2. 一路點擊 **Next**。
+
+   <img width="878" height="304" alt="image" src="https://github.com/user-attachments/assets/45590f6e-a7f0-4065-876a-a56ad00c2ae3" />
+
 3. 在 `Select Schemas` 步驟中，勾選我們剛才操作的資料庫。
+
+   <img width="538" height="236" alt="image" src="https://github.com/user-attachments/assets/b1628b00-ebb8-4659-94f0-5f12d2614d8d" />
+
 4. 繼續點擊 **Next** 直到 **Execute** 執行完畢，最後點擊 **Finish**。
+
+   <img width="480" height="221" alt="image" src="https://github.com/user-attachments/assets/7c6bc4a9-929c-4760-8c6d-86631e900f3e" />
+
 5. 畫面上將會出現一份精美的 **EER Diagram**，你可以清楚地看見表與表之間的「一對多」連線 (一條線連接著一個鑰匙與一個多重分支圖示)，這對於期末專題的架構展示非常實用！
+   
+   <img width="602" height="429" alt="image" src="https://github.com/user-attachments/assets/f03e7604-62ee-4d33-9b16-a69cba175521" />
