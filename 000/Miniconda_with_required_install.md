@@ -127,17 +127,15 @@
 
 - **錯誤訊息包含 `Access denied for user 'root'@'localhost'`**
   
-    > [!WARNING]
-    > 這代表您的**帳號或密碼輸入錯誤**。請回到 Python 程式碼中，確認 `password = '...'` 的單引號內是否正確填寫了您安裝 MySQL 時設定的密碼。
+> [!WARNING]
+> 這代表您的**帳號或密碼輸入錯誤**。請回到 Python 程式碼中，確認 `password = '...'` 的單引號內是否正確填寫了您安裝 MySQL 時設定的密碼。
 
 - **錯誤訊息包含 `Unknown database 'sakila'`**
   
-    :::info
-    這代表找不到指定的資料庫。請開啟您的 **MySQL Workbench**，確認左側 Schemas 列表欄中，是否真的存在名為 `sakila` 的資料庫。
-    :::
+> [!WARNING]
+> 這代表找不到指定的資料庫。請開啟您的 **MySQL Workbench**，確認左側 Schemas 列表欄中，是否真的存在名為 `sakila` 的資料庫。
 
 - **錯誤訊息包含 `Table 'sakila.Language' doesn't exist`**
   
-    :::info
-    這代表您的資料庫中沒有這個資料表。請確認您的 SQL 語法 `SELECT * FROM Language` 中的表名是否正確，或是您是否尚未在 Workbench 中建立該資料表。
-    :::
+> [!WARNING]
+> 這代表您的資料庫中沒有這個資料表。請確認您的 SQL 語法 `SELECT * FROM Language` 中的表名是否正確，或是您是否尚未在 Workbench 中建立該資料表。
