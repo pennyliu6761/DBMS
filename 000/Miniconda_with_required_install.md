@@ -41,9 +41,10 @@
 2. 在終端機視窗中，輸入以下指令並按 Enter 執行：
 <img width="865" height="270" alt="image" src="https://github.com/user-attachments/assets/ca2531bc-569a-4268-ba6f-742985b81020" />
 
-    ```bash
-    conda install spyder pymysql pandas
-    ```
+> [!TIP]
+> ```bash
+> conda install spyder pymysql pandas
+> ```
 
 3. 系統會開始解析套件，當畫面出現 `Proceed ([y]/n)?` 時，請輸入 `y` 並按 Enter 繼續安裝，等待所有套件下載與安裝完成。
 <img width="865" height="463" alt="image" src="https://github.com/user-attachments/assets/858b89dd-01e1-4a06-b731-3e96cd7080cc" />
