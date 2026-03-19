@@ -7,28 +7,50 @@
 ## 步驟一：下載與安裝 Miniconda
 
 1. 前往 Anaconda 官方下載頁面，選擇下載 **Miniconda** (Windows 64-Bit Graphical Installer)。
+<img width="865" height="407" alt="image" src="https://github.com/user-attachments/assets/45d6a2fa-d4b2-4acf-84da-7a6ef5b799c2" />
+<img width="865" height="397" alt="image" src="https://github.com/user-attachments/assets/2f3028ae-08a1-4938-aedf-1be0ec87d3fe" />
+
 2. 執行下載的安裝檔，點擊 `Next` 並同意授權條款 (`I Agree`)。
+<img width="865" height="672" alt="image" src="https://github.com/user-attachments/assets/19cb5bfc-3df9-4b75-b43b-f4ac5a51ef5e" />
+<img width="865" height="672" alt="image" src="https://github.com/user-attachments/assets/d98b838e-0bee-4f29-8342-e83bf6fab85a" />
+
 3. 在 Installation Type 步驟，選擇預設的 **Just Me (recommended)**。
+<img width="865" height="672" alt="image" src="https://github.com/user-attachments/assets/204ba5d1-576b-4cac-aa88-8ed43234ae02" />
+
 4. 在 Choose Install Location 步驟，選擇您要安裝的路徑（建議保持預設），點擊 `Next`。
+<img width="865" height="672" alt="image" src="https://github.com/user-attachments/assets/e994b898-6f63-49db-9aa4-d5419ea70a51" />
+
 5. 在 Advanced Installation Options 步驟，建議勾選以下選項，然後點擊 `Install`：
     - [x] Create shortcuts (supported packages only).
     - [x] Clear the package cache upon completion
+<img width="865" height="672" alt="image" src="https://github.com/user-attachments/assets/f35bf2e3-85e6-4bea-81f7-1e1290815170" />
+
 6. 等待安裝進度條跑完後，點擊 `Next` 並 `Finish` 完成安裝。
+<img width="865" height="672" alt="image" src="https://github.com/user-attachments/assets/29ba64de-81ad-4495-8996-7a3ff9810e50" />
+<img width="865" height="672" alt="image" src="https://github.com/user-attachments/assets/9a43d232-2ab7-4923-9e92-eaa0aee9b5eb" />
 
 ---
 
 ## 步驟二：安裝必要套件 (Spyder 與連線工具)
 
-我們需要透過終端機安裝程式編輯器 (Spyder) 以及資料庫處理相關的套件。請注意，本次教學我們將使用 `pymysql` 作為連線驅動。
+我們需要透過終端機安裝程式編輯器 (Spyder) 以及資料庫處理相關的套件。本次教學我們將使用純 Python 實作的 `pymysql` 作為連線驅動。
 
 1. 點擊 Windows 開始選單，搜尋並開啟 **Anaconda Prompt**。
+<img width="865" height="774" alt="image" src="https://github.com/user-attachments/assets/452233a8-a2a0-48f0-9211-c44688ccf384" />
+
 2. 在終端機視窗中，輸入以下指令並按 Enter 執行：
+<img width="865" height="270" alt="image" src="https://github.com/user-attachments/assets/ca2531bc-569a-4268-ba6f-742985b81020" />
 
     ```bash
-    conda install spyder pymysql pandas sqlalchemy
+    conda install spyder pymysql pandas
     ```
 
 3. 系統會開始解析套件，當畫面出現 `Proceed ([y]/n)?` 時，請輸入 `y` 並按 Enter 繼續安裝，等待所有套件下載與安裝完成。
+<img width="865" height="463" alt="image" src="https://github.com/user-attachments/assets/858b89dd-01e1-4a06-b731-3e96cd7080cc" />
+<img width="865" height="463" alt="image" src="https://github.com/user-attachments/assets/6be54c60-c32d-4b02-b1a5-7183b648dff4" />
+
+> [!TIP]
+> **提示**：若畫面最後顯示 `done`，即代表所有套件皆安裝完成。
 
 ---
 
@@ -36,6 +58,7 @@
 
 1. 再次打開 Windows 開始選單，搜尋 **Spyder** 並點擊開啟應用程式。
 2. 第一次開啟可能會需要一點時間載入，請耐心等待直到出現程式編輯介面。
+<img width="865" height="334" alt="image" src="https://github.com/user-attachments/assets/c4a2f40b-ef55-4f1a-bb6e-f6fe8596f86d" />
 
 ---
 
@@ -93,6 +116,8 @@
 
 3. 點擊上方的「綠色播放鍵 (Run file)」執行程式。
 4. 觀察右下角的 Console (控制台) 視窗。如果連線與語法皆正確，您應該會看到 `✅ 資料庫連線與讀取成功！` 以及資料表的內容。
+<img width="421" height="182" alt="image" src="https://github.com/user-attachments/assets/c1f72fdb-fcc6-4385-89ea-a37801dd8ae0" />
+
 ---
 
 ## 🔧 常見錯誤排除 (Troubleshooting)
