@@ -7,6 +7,61 @@
 
 ---
 
+## 📖 課前觀念與 SQL 語法解析
+
+在正式撰寫 Python 程式碼之前，我們先來了解本次實作會用到的核心資料庫觀念，以及前端 UI 是如何與後端 SQL 語法互相配合的。
+
+### 1. 動態資料表預覽與 LIMIT 限制
+
+第一個功能是讓使用者透過下拉選單選擇資料表，並在網頁上顯示內容。
+
+- **對應 UI 元件**：下拉選單 (`st.selectbox`) 與 資料表格 (`st.dataframe`)
+- **核心 SQL 語法**：
+    ```sql
+    SELECT * FROM film LIMIT 100;
+    ```
+    
+> [!NOTE]
+> **為什麼要加 `LIMIT`？**
+> 在實務的網頁開發中，資料庫的資料量可能高達數百萬筆。如果前端直接執行 `SELECT *` 而不加限制，會導致伺服器記憶體耗盡或網頁卡死。因此，在做資料預覽時，強制加上 `LIMIT` (例如只撈前 100 筆) 是非常重要的效能保護機制。
+
+### 2. 條件式關鍵字搜尋 (WHERE + LIKE)
+
+第二個功能是讓使用者輸入關鍵字，找出名稱中包含該關鍵字的電影。
+
+- **對應 UI 元件**：文字輸入框 (`st.text_input`)
+- **核心 SQL 語法**：
+    ```sql
+    SELECT title, release_year FROM film WHERE title LIKE '%LOVE%';
+    ```
+- **語法解析**：`LIKE` 運算子搭配 `%` (百分比符號) 可以進行模糊搜尋。`%LOVE%` 代表不管 `LOVE` 前面或後面是什麼字元，只要中間包含這四個字母就會被撈出來。
+
+### 3. 🛡️ 核心資安觀念：防範 SQL Injection (資料庫隱碼攻擊)
+
+這是資料庫程式設計中**最重要的一課**！當我們接收使用者的輸入（例如關鍵字）並送往資料庫時，**絕對不可以**直接用字串拼接的方式組合 SQL 語法。
+
+- ❌ **危險的寫法 (純字串拼接)**：
+    ```python
+    # 如果使用者故意在輸入框打上： ' OR 1=1 --
+    user_input = "' OR 1=1 --"
+    query = f"SELECT * FROM film WHERE title = '{user_input}'"
+    # 這會讓語法變成 SELECT * FROM film WHERE title = '' OR 1=1 --'
+    # 導致駭客可以繞過驗證，撈出整張資料表的所有機密！
+    ```
+
+- ✅ **安全的寫法 (參數化查詢 Parameterized Query)**：
+    ```python
+    query = "SELECT * FROM film WHERE title LIKE %s"
+    # 我們在 SQL 語法中留下 %s 當作「佔位符」
+    # 在執行時，才由 pymysql 套件安全地將變數塞進去
+    cursor.execute(query, (f"%{user_input}%",))
+    ```
+
+> [!WARNING]
+> **永遠不要相信使用者的輸入！** 養成使用 `%s` 參數化查詢的習慣，是成為合格資料庫管理員的第一步。
+
+---
+
 ## 步驟一：安裝 Streamlit 並確認資料庫狀態
 
 1. 請開啟 **Anaconda Prompt**，確認是否已安裝 Streamlit。若無，請執行以下指令：
@@ -21,7 +76,7 @@
 
 ## 步驟二：撰寫 Streamlit 查詢系統程式碼
 
-我們將設計一個包含兩個核心功能的查詢介面。請將這段程式碼寫入，作為前端介面與後端資料庫溝通的橋樑。
+了解理論後，我們來實際將 UI 與 SQL 結合。
 
 1. 在 Spyder 中建立一個新檔案，命名為 `app.py`（請務必存檔）。
 2. 複製並貼上以下程式碼，並請將**密碼**修改為您自己的 MySQL 密碼：
@@ -59,14 +114,12 @@
             conn = get_connection()
             cursor = conn.cursor()
             
-            # 執行查詢 (加上 LIMIT 100 避免資料量過大導致網頁卡頓)
-            # 注意：資料表名稱通常無法使用參數化傳遞，所以我們用下拉選單限制使用者的選擇範圍以確保安全
+            # 執行查詢 (加上 LIMIT 100 避免資料庫過載)
             query = f"SELECT * FROM {table_name} LIMIT 100;"
             cursor.execute(query)
             result = cursor.fetchall()
             
             if result:
-                # 抓取欄位名稱並建立 DataFrame
                 columns = [col[0] for col in cursor.description]
                 df = pd.DataFrame(result, columns=columns)
                 st.dataframe(df, use_container_width=True)
@@ -95,7 +148,7 @@
                 conn = get_connection()
                 cursor = conn.cursor()
                 
-                # 💡 教學重點：使用「參數化查詢 (%s)」來防範 SQL Injection
+                # 💡 實踐資安觀念：使用「參數化查詢 (%s)」
                 query = "SELECT film_id, title, release_year, rental_rate FROM film WHERE title LIKE %s"
                 
                 # 在執行時才將變數塞入 %s 的位置，並加上 % 作為模糊搜尋
@@ -145,7 +198,3 @@
 
     - 在「區塊二」輸入 `DINOSAUR`，測試模糊搜尋是否能正確從 `film` 資料表中找出包含該單字的電影。
       <img width="737" height="839" alt="image" src="https://github.com/user-attachments/assets/1e474320-db79-432c-b454-862e5473a885" />
-
-> [!TIP]
-> **資安小知識 (SQL Injection)**
-> 在區塊二的程式碼中，我們使用了 `cursor.execute(query, (變數,))` 的寫法，而不是直接用字串把 SQL 語法拼起來。這樣能確保使用者輸入的內容只會被當成「純文字」處理，而不會被當作 SQL 指令執行，是保護資料庫的關鍵防線！
