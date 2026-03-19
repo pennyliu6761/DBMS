@@ -24,8 +24,11 @@
     -- 建立一個名為 demo_db 的資料庫
     CREATE DATABASE demo_db;
     ```
+    
+<img width="519" height="218" alt="image" src="https://github.com/user-attachments/assets/8b5f7dd1-26d2-4e52-9d6a-1f52b7e73311" />
 
 3. 點擊閃電圖示 ⚡ 執行該語法，並在下方的 Output 視窗確認是否執行成功。
+<img width="693" height="26" alt="image" src="https://github.com/user-attachments/assets/39144771-6442-49ae-84ee-2563b5b79fd6" />
 
 ---
 
@@ -40,9 +43,8 @@
     pip install streamlit pymysql
     ```
 
-    :::info
-    **💡 提示：** 若畫面顯示 `Successfully installed...` 即代表安裝完成。
-    :::
+> [!TIP]
+> 💡 提示：** 若畫面顯示 `Successfully installed...` 即代表安裝完成。
 
 ---
 
@@ -91,9 +93,8 @@
 
 ## 步驟四：啟動網頁伺服器並測試
 
-:::warning
-**⚠️ 注意：** 請不要在 Spyder 裡面按綠色播放鍵執行！Streamlit 是一個網頁框架，必須透過終端機啟動。
-:::
+> [!WARNING]
+> **⚠️ 注意：** 請不要在 Spyder 裡面按綠色播放鍵執行！Streamlit 是一個網頁框架，必須透過終端機啟動。
 
 1. 回到 **Anaconda Prompt**。
 2. 使用 `cd` 指令切換到你存放 `app.py` 的資料夾。例如，如果存在桌面：
