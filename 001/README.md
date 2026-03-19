@@ -25,10 +25,10 @@
     CREATE DATABASE demo_db;
     ```
     
-<img width="519" height="218" alt="image" src="https://github.com/user-attachments/assets/8b5f7dd1-26d2-4e52-9d6a-1f52b7e73311" />
+    <img width="519" height="218" alt="image" src="https://github.com/user-attachments/assets/8b5f7dd1-26d2-4e52-9d6a-1f52b7e73311" />
 
 3. 點擊閃電圖示 ⚡ 執行該語法，並在下方的 Output 視窗確認是否執行成功。
-<img width="693" height="26" alt="image" src="https://github.com/user-attachments/assets/39144771-6442-49ae-84ee-2563b5b79fd6" />
+    <img width="693" height="26" alt="image" src="https://github.com/user-attachments/assets/39144771-6442-49ae-84ee-2563b5b79fd6" />
 
 ---
 
@@ -110,7 +110,11 @@
     ```
 
 4. 成功後，瀏覽器會自動彈出一個網頁 (`http://localhost:8501`)。
+    <img width="813" height="563" alt="image" src="https://github.com/user-attachments/assets/bef53de1-53dc-43b0-b14b-760d3158f8e7" />
+
 5. 點擊網頁上的 **「測試資料庫連線」** 按鈕，看看是否出現綠色的成功標籤吧！
+   <img width="1160" height="423" alt="image" src="https://github.com/user-attachments/assets/62f97d06-8d89-4262-b632-7f8543b3f599" />
+
 
 <details>
 <summary><b>如果出現紅色的錯誤訊息怎麼辦？（點擊展開）</b></summary>
