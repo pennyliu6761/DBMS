@@ -136,9 +136,15 @@
     streamlit run app.py
     ```
 4. 成功後，瀏覽器會自動彈出 `http://localhost:8501`。
+    <img width="743" height="633" alt="image" src="https://github.com/user-attachments/assets/ab1c56c7-1e09-4fe0-a5f0-dc50e2563edb" />
+
 5. **測試任務：**
     - 在「區塊一」切換不同的資料表，觀察下方表格是否會自動重新渲染。
+      <img width="721" height="604" alt="image" src="https://github.com/user-attachments/assets/5716fbc0-a389-4013-9284-d9049ae18ede" />
+      <img width="723" height="609" alt="image" src="https://github.com/user-attachments/assets/19f9841e-764d-4d6e-9284-318d1a833ee0" />
+
     - 在「區塊二」輸入 `DINOSAUR`，測試模糊搜尋是否能正確從 `film` 資料表中找出包含該單字的電影。
+      <img width="737" height="839" alt="image" src="https://github.com/user-attachments/assets/1e474320-db79-432c-b454-862e5473a885" />
 
 > [!TIP]
 > **資安小知識 (SQL Injection)**
