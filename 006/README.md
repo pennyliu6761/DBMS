@@ -16,6 +16,7 @@
 ```sql
 CREATE DATABASE IF NOT EXISTS kinmen_shop;
 USE kinmen_shop;
+
 CREATE TABLE products (
     product_id VARCHAR(10) PRIMARY KEY,
     product_name VARCHAR(50) NOT NULL,
@@ -147,17 +148,17 @@ if st.button("載入所有商品資料"):
     try:
         conn = get_connection()
         cursor = conn.cursor()
-            
+        
         cursor.execute("SELECT * FROM products")
         result = cursor.fetchall()
-            
+        
         if result:
             columns = [col[0] for col in cursor.description]
             df = pd.DataFrame(result, columns=columns)
             st.dataframe(df, use_container_width=True)
         else:
             st.info("目前沒有任何商品資料。")
-                
+            
     except Exception as e:
         st.error(f"❌ 查詢失敗：{e}")
     finally:
@@ -228,7 +229,7 @@ if st.button("搜尋商品"):
             query = "SELECT * FROM products WHERE product_name LIKE %s ORDER BY price ASC"
             cursor.execute(query, (f"%{search_keyword}%",))
             result = cursor.fetchall()
-                
+            
             if result:
                 columns = [col[0] for col in cursor.description]
                 df = pd.DataFrame(result, columns=columns)
@@ -236,7 +237,7 @@ if st.button("搜尋商品"):
                 st.dataframe(df, use_container_width=True)
             else:
                 st.warning("找不到符合關鍵字的商品，請嘗試其他關鍵字。")
-                    
+                
         except Exception as e:
             st.error(f"❌ 搜尋失敗：{e}")
         finally:
