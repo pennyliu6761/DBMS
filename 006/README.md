@@ -13,7 +13,7 @@
 
 在開始練習查詢之前，請先在 MySQL Workbench 開啟新的查詢視窗，執行以下 SQL 語法，建立本次課程專用的「金門特產資料表 (`products`)」並匯入測試資料：
 
-```
+```sql
 CREATE DATABASE IF NOT EXISTS kinmen_shop;
 USE kinmen_shop;
 CREATE TABLE products (
