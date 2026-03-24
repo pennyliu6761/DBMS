@@ -13,28 +13,27 @@
 
 在開始練習查詢之前，請先在 MySQL Workbench 開啟新的查詢視窗，執行以下 SQL 語法，建立本次課程專用的「金門特產資料表 (`products`)」並匯入測試資料：
 
-    ```sql
-    CREATE DATABASE IF NOT EXISTS kinmen_shop;
-    USE kinmen_shop;
+```
+CREATE DATABASE IF NOT EXISTS kinmen_shop;
+USE kinmen_shop;
+CREATE TABLE products (
+    product_id VARCHAR(10) PRIMARY KEY,
+    product_name VARCHAR(50) NOT NULL,
+    category VARCHAR(20),
+    price INT,
+    stock INT
+);
 
-    CREATE TABLE products (
-        product_id VARCHAR(10) PRIMARY KEY,
-        product_name VARCHAR(50) NOT NULL,
-        category VARCHAR(20),
-        price INT,
-        stock INT
-    );
-
-    INSERT INTO products VALUES 
-    ('P001', '特級高粱酒58度', '酒類', 850, 150),
-    ('P002', '原味貢糖', '伴手禮', 180, 500),
-    ('P003', '花生貢糖', '伴手禮', 190, 320),
-    ('P004', '高粱牛肉乾(微辣)', '肉品', 250, 80),
-    ('P005', '高粱牛肉乾(原味)', '肉品', 250, 0),
-    ('P006', '金門砲彈鋼刀', '工藝品', 1500, 15),
-    ('P007', '一條根貼布', '保健品', 120, 1000),
-    ('P008', '隱藏版高粱特調', '酒類', NULL, 5); -- 價格未定
-    ```
+INSERT INTO products VALUES 
+('P001', '特級高粱酒58度', '酒類', 850, 150),
+('P002', '原味貢糖', '伴手禮', 180, 500),
+('P003', '花生貢糖', '伴手禮', 190, 320),
+('P004', '高粱牛肉乾(微辣)', '肉品', 250, 80),
+('P005', '高粱牛肉乾(原味)', '肉品', 250, 0),
+('P006', '金門砲彈鋼刀', '工藝品', 1500, 15),
+('P007', '一條根貼布', '保健品', 120, 1000),
+('P008', '隱藏版高粱特調', '酒類', NULL, 5); -- 價格未定
+```
 
 ---
 
@@ -46,24 +45,24 @@
 
 除了撈取原始欄位，我們可以直接在 `SELECT` 階段進行數學運算，並用 `AS` 取一個好讀的別名。
 
-    ```sql
-    -- 查詢特定欄位，並計算庫存總價值
-    SELECT 
-        product_name AS '商品名稱', 
-        price AS '單價', 
-        stock AS '庫存量',
-        (price * stock) AS '庫存總值' 
-    FROM products;
-    ```
+```sql
+-- 查詢特定欄位，並計算庫存總價值
+SELECT 
+    product_name AS '商品名稱', 
+    price AS '單價', 
+    stock AS '庫存量',
+    (price * stock) AS '庫存總值' 
+FROM products;
+```
 
 ### 2. 條件過濾 (WHERE, AND, OR)
 
 使用 `WHERE` 子句加上條件，告訴資料庫我們「只要哪些資料」。
 
-    ```sql
-    -- 找出屬於「伴手禮」且庫存小於 400 的商品
-    SELECT * FROM products WHERE category = '伴手禮' AND stock < 400;
-    ```
+```sql
+-- 找出屬於「伴手禮」且庫存小於 400 的商品
+SELECT * FROM products WHERE category = '伴手禮' AND stock < 400;
+```
 
 ### 3. 進階過濾技巧 (LIKE, BETWEEN, IS NULL)
 
@@ -71,26 +70,26 @@
 * **`LIKE` (模糊搜尋)**：搭配 `%` (代表任意長度的字元) 使用。
 * **`IS NULL`**：尋找沒有資料（空值）的欄位。
 
-    ```sql
-    -- 找出商品名稱包含「牛肉乾」的所有商品 (模糊搜尋)
-    SELECT * FROM products WHERE product_name LIKE '%牛肉乾%';
+```sql
+-- 找出商品名稱包含「牛肉乾」的所有商品 (模糊搜尋)
+SELECT * FROM products WHERE product_name LIKE '%牛肉乾%';
 
-    -- 找出價格尚未定價 (NULL) 的商品
-    SELECT * FROM products WHERE price IS NULL;
-    ```
+-- 找出價格尚未定價 (NULL) 的商品
+SELECT * FROM products WHERE price IS NULL;
+```
 
 ### 4. 資料排序與去重 (ORDER BY, DISTINCT)
 
 * **`ORDER BY`**：預設為 `ASC` (由小到大)，加上 `DESC` 代表由大到小。
 * **`DISTINCT`**：消除重複的值，用於查詢資料表裡有哪些「種類」。
 
-    ```sql
-    -- 查詢店內有哪些商品類別 (去除重複)
-    SELECT DISTINCT category FROM products;
+```sql
+-- 查詢店內有哪些商品類別 (去除重複)
+SELECT DISTINCT category FROM products;
 
-    -- 列出所有商品，並依照價格「由高到低」排序
-    SELECT product_name, price FROM products ORDER BY price DESC;
-    ```
+-- 列出所有商品，並依照價格「由高到低」排序
+SELECT product_name, price FROM products ORDER BY price DESC;
+```
 
 ---
 
@@ -122,130 +121,130 @@
 
 請複製以下程式碼貼入 `app.py`。這段程式碼包含了連線設定，以及對應 `SELECT *` 的資料表預覽功能。
 
-    ```python
-    import streamlit as st
-    import pymysql
-    import pandas as pd
+```python
+import streamlit as st
+import pymysql
+import pandas as pd
 
-    # --- 共用連線設定 ---
-    def get_connection():
-        return pymysql.connect(
-            host="127.0.0.1",
-            user="root",            # ⚠️ 請填入你的 MySQL 帳號
-            password="1234",        # ⚠️ 請填入你的 MySQL 密碼
-            database="kinmen_shop", # 連線到金門特產資料庫
-            charset="utf8mb4"
-        )
+# --- 共用連線設定 ---
+def get_connection():
+    return pymysql.connect(
+        host="127.0.0.1",
+        user="root",            # ⚠️ 請填入你的 MySQL 帳號
+        password="1234",        # ⚠️ 請填入你的 MySQL 密碼
+        database="kinmen_shop", # 連線到金門特產資料庫
+        charset="utf8mb4"
+    )
 
-    st.title("🛒 金門在地特產進銷存系統")
-    st.markdown("本系統展示如何結合 SQL 查詢語法與 Streamlit 網頁元件。")
-    st.divider()
+st.title("🛒 金門在地特產進銷存系統")
+st.markdown("本系統展示如何結合 SQL 查詢語法與 Streamlit 網頁元件。")
+st.divider()
 
-    # --- 區塊一：基礎查詢預覽 (SELECT *) ---
-    st.header("1. 商品資料表總覽")
+# --- 區塊一：基礎查詢預覽 (SELECT *) ---
+st.header("1. 商品資料表總覽")
 
-    if st.button("載入所有商品資料"):
-        try:
-            conn = get_connection()
-            cursor = conn.cursor()
+if st.button("載入所有商品資料"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
             
-            cursor.execute("SELECT * FROM products")
-            result = cursor.fetchall()
+        cursor.execute("SELECT * FROM products")
+        result = cursor.fetchall()
             
-            if result:
-                columns = [col[0] for col in cursor.description]
-                df = pd.DataFrame(result, columns=columns)
-                st.dataframe(df, use_container_width=True)
-            else:
-                st.info("目前沒有任何商品資料。")
+        if result:
+            columns = [col[0] for col in cursor.description]
+            df = pd.DataFrame(result, columns=columns)
+            st.dataframe(df, use_container_width=True)
+        else:
+            st.info("目前沒有任何商品資料。")
                 
-        except Exception as e:
-            st.error(f"❌ 查詢失敗：{e}")
-        finally:
-            if 'cursor' in locals(): cursor.close()
-            if 'conn' in locals(): conn.close()
-    ```
+    except Exception as e:
+        st.error(f"❌ 查詢失敗：{e}")
+    finally:
+        if 'cursor' in locals(): cursor.close()
+        if 'conn' in locals(): conn.close()
+```
 
 ### 步驟 2：加入「依類別過濾 (WHERE)」功能
 
 將下拉選單與 SQL 的 `WHERE` 條件結合。請將以下程式碼接續貼在 `app.py` 的最下方：
 
-    ```python
-    st.divider()
+```python
+st.divider()
 
-    # --- 區塊二：商品類別過濾 (WHERE 條件) ---
-    st.header("2. 依商品類別過濾")
+# --- 區塊二：商品類別過濾 (WHERE 條件) ---
+st.header("2. 依商品類別過濾")
 
-    # 建立下拉選單防呆
-    selected_category = st.selectbox(
-        "請選擇要查看的商品類別：", 
-        ["酒類", "伴手禮", "肉品", "工藝品", "保健品"]
-    )
+# 建立下拉選單防呆
+selected_category = st.selectbox(
+    "請選擇要查看的商品類別：", 
+    ["酒類", "伴手禮", "肉品", "工藝品", "保健品"]
+)
 
-    if st.button("查詢該類別商品"):
-        try:
-            conn = get_connection()
-            cursor = conn.cursor()
+if st.button("查詢該類別商品"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # 使用 %s 參數化查詢，防止 SQL Injection
+        query = "SELECT * FROM products WHERE category = %s"
+        cursor.execute(query, (selected_category,))
+        result = cursor.fetchall()
+        
+        if result:
+            columns = [col[0] for col in cursor.description]
+            df = pd.DataFrame(result, columns=columns)
+            st.success(f"✅ 找到 {len(df)} 筆屬於【{selected_category}】的商品！")
+            st.dataframe(df, use_container_width=True)
+        else:
+            st.warning("該類別目前沒有商品。")
             
-            # 使用 %s 參數化查詢，防止 SQL Injection
-            query = "SELECT * FROM products WHERE category = %s"
-            cursor.execute(query, (selected_category,))
-            result = cursor.fetchall()
-            
-            if result:
-                columns = [col[0] for col in cursor.description]
-                df = pd.DataFrame(result, columns=columns)
-                st.success(f"✅ 找到 {len(df)} 筆屬於【{selected_category}】的商品！")
-                st.dataframe(df, use_container_width=True)
-            else:
-                st.warning("該類別目前沒有商品。")
-                
-        except Exception as e:
-            st.error(f"❌ 查詢失敗：{e}")
-        finally:
-            if 'cursor' in locals(): cursor.close()
-            if 'conn' in locals(): conn.close()
-    ```
+    except Exception as e:
+        st.error(f"❌ 查詢失敗：{e}")
+    finally:
+        if 'cursor' in locals(): cursor.close()
+        if 'conn' in locals(): conn.close()
+```
 
 ### 步驟 3：加入「關鍵字搜尋與排序 (LIKE + ORDER BY)」功能
 
 最後，我們加入模糊搜尋與價格排序功能。請將這段程式碼接續貼在最下方，存檔後重新整理網頁即可看到完整系統！
 
-    ```python
-    st.divider()
+```python
+st.divider()
 
-    # --- 區塊三：關鍵字搜尋與自動排序 (LIKE + ORDER BY) ---
-    st.header("3. 商品關鍵字搜尋 (價格由低到高)")
+# --- 區塊三：關鍵字搜尋與自動排序 (LIKE + ORDER BY) ---
+st.header("3. 商品關鍵字搜尋 (價格由低到高)")
 
-    search_keyword = st.text_input("請輸入商品名稱關鍵字：", placeholder="例如: 貢糖")
+search_keyword = st.text_input("請輸入商品名稱關鍵字：", placeholder="例如: 貢糖")
 
-    if st.button("搜尋商品"):
-        if search_keyword:
-            try:
-                conn = get_connection()
-                cursor = conn.cursor()
+if st.button("搜尋商品"):
+    if search_keyword:
+        try:
+            conn = get_connection()
+            cursor = conn.cursor()
+            
+            # 結合模糊搜尋與排序
+            query = "SELECT * FROM products WHERE product_name LIKE %s ORDER BY price ASC"
+            cursor.execute(query, (f"%{search_keyword}%",))
+            result = cursor.fetchall()
                 
-                # 結合模糊搜尋與排序
-                query = "SELECT * FROM products WHERE product_name LIKE %s ORDER BY price ASC"
-                cursor.execute(query, (f"%{search_keyword}%",))
-                result = cursor.fetchall()
-                
-                if result:
-                    columns = [col[0] for col in cursor.description]
-                    df = pd.DataFrame(result, columns=columns)
-                    st.success("✅ 成功找到符合的商品！")
-                    st.dataframe(df, use_container_width=True)
-                else:
-                    st.warning("找不到符合關鍵字的商品，請嘗試其他關鍵字。")
+            if result:
+                columns = [col[0] for col in cursor.description]
+                df = pd.DataFrame(result, columns=columns)
+                st.success("✅ 成功找到符合的商品！")
+                st.dataframe(df, use_container_width=True)
+            else:
+                st.warning("找不到符合關鍵字的商品，請嘗試其他關鍵字。")
                     
-            except Exception as e:
-                st.error(f"❌ 搜尋失敗：{e}")
-            finally:
-                if 'cursor' in locals(): cursor.close()
-                if 'conn' in locals(): conn.close()
-        else:
-            st.warning("請先輸入關鍵字再點擊搜尋！")
-    ```
+        except Exception as e:
+            st.error(f"❌ 搜尋失敗：{e}")
+        finally:
+            if 'cursor' in locals(): cursor.close()
+            if 'conn' in locals(): conn.close()
+    else:
+        st.warning("請先輸入關鍵字再點擊搜尋！")
+```
 
 ---
 
