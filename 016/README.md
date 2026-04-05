@@ -1,4 +1,4 @@
-# 第十六章：MySQL/MariaDB 用戶端程式開發 — 使用 Python 與 PHP
+# 實作十六：MySQL/MariaDB 用戶端程式開發 — 使用 Python 與 PHP
 
 **授課教師：劉鎮豪**
 **課程：資料庫管理系統**
