@@ -48,7 +48,6 @@
     # 這會讓語法變成 SELECT * FROM film WHERE title = '' OR 1=1 --'
     # 導致駭客可以繞過驗證，撈出整張資料表的所有機密！
     ```
-
 - ✅ **安全的寫法 (參數化查詢 Parameterized Query)**：
     ```python
     query = "SELECT * FROM film WHERE title LIKE %s"
@@ -56,6 +55,46 @@
     # 在執行時，才由 pymysql 套件安全地將變數塞進去
     cursor.execute(query, (f"%{user_input}%",))
     ```
+- ❌ **危險的寫法 (實作練習)**：   
+    ```python
+    import streamlit as st
+    import pymysql
+    import pandas as pd
+    
+    # 1. 資料庫連線 (建議教學時先在本地建立測試用的簡單 table)
+    def get_connection():
+        return pymysql.connect(
+            host="127.0.0.1", user="root", password="1234",
+            database="sakila", charset="utf8mb4"
+        )
+    
+    st.title("🔓 SQL 注入 (Injection) 演示系統")
+    st.warning("警告：這段程式碼包含故意留下的安全性漏洞，僅供教學使用。")
+    
+    # 2. 核心漏洞：使用文字輸入框接收使用者指令
+    search_keyword = st.text_input("輸入電影名稱搜尋：", placeholder="ACADEMY DINOSAUR")
+    
+    if st.button("搜尋"):
+        # ❌ 漏洞點：直接用 f-string 拼接 SQL，這就是注入的溫床
+        sql_query = f"SELECT title, release_year FROM film WHERE title = '{search_keyword}'"
+        
+        # 顯示出實際執行的 SQL 語句，讓學生看清楚「輸入」如何變成「指令」
+        st.info(f"後端實際執行語句：`{sql_query}`")
+        
+        try:
+            conn = get_connection()
+            df = pd.read_sql(sql_query, conn) # 直接執行拼接後的字串
+            
+            if not df.empty:
+                st.write(df)
+            else:
+                st.write("查無資料")
+                
+        except Exception as e:
+            st.error(f"資料庫噴錯（這能幫助駭客除錯）：{e}")
+    ```
+
+<img width="1136" height="858" alt="image" src="https://github.com/user-attachments/assets/c65740c8-81cf-441d-8c58-91aa702240e1" />
 
 > [!WARNING]
 > **永遠不要相信使用者的輸入！** 養成使用 `%s` 參數化查詢的習慣，是成為合格資料庫管理員的第一步。
