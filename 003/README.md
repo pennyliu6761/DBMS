@@ -46,6 +46,8 @@
     2. **`JOIN ... ON ...`**：告訴資料庫「我要把哪兩張表接起來，而且是用哪兩個欄位來核對身分」。例如 `f.film_id = fa.film_id` 就是讓電影表和橋接表的 ID 對齊。
     3. **`CONCAT()` 函式**：由於 `actor` 表將名字分成了 `first_name` 與 `last_name`，我們使用 `CONCAT` 將它們中間加一個空白串接起來，方便與前端網頁傳來的「全名」進行比對。
 
+<img width="1136" height="782" alt="image" src="https://github.com/user-attachments/assets/0259ea4e-37d2-41e3-9e3f-57efecc50874" />
+
 ### 3. 🛡️ 進階資安與防呆設計：前端限制取代後端驗證
 在實作二中，我們學到文字輸入框 (`st.text_input`) 有被 **SQL Injection（隱碼攻擊）** 的風險，所以我們必須使用 `%s` 參數化查詢。
 
