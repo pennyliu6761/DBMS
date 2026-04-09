@@ -318,6 +318,10 @@
       df_filter['price'] = pd.to_numeric(df_filter['price'], errors='coerce').fillna(0)
   
       # 利用 Pandas 的 Mask 進行過濾 (這行程式碼會在拉桿更動時自動重複執行)
+      # case=False：不區分大小寫（搜尋 "abc" 也能找到 "ABC"）。
+      # na=False：如果名稱是空的，直接判斷為不符合。
+      # 產出：一串由 True/False 組成的清單。
+      # 在一般的 Python 邏輯中我們用 and，但在 Pandas（與 Numpy）中處理一整串數據時，必須使用 位元運算子 &
       mask = (
           df_filter['product_name'].str.contains(search_keyword, case=False, na=False) &
           (df_filter['price'] >= min_p) &
