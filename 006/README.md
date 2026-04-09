@@ -267,7 +267,7 @@
   # --- 1. 共用連線設定 ---
   def get_connection():
       return pymysql.connect(
-          host="127.0.0.1", user="root", password="nquchliu", 
+          host="127.0.0.1", user="root", password="1234", 
           database="kinmen_shop", charset="utf8mb4"
       )
   
