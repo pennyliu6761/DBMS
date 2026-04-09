@@ -180,4 +180,9 @@
 
 3. 執行到 **Finish** 後，你會得到一份 EER 關聯圖。
 
-   <img width="909" height="615" alt="image" src="https://github.com/user-attachments/assets/e18cc590-b0f4-4bed-a224-e9268f4340e0" />
+<img width="820" height="690" alt="image" src="https://github.com/user-attachments/assets/ee1a1891-f110-4084-a0b3-18dfdc1c7110" />
+
+4. 修正 EER 關聯圖。
+
+   <img width="1005" height="710" alt="image" src="https://github.com/user-attachments/assets/952752cc-cc03-4915-85b3-c66444af07c8" />
+
