@@ -36,6 +36,9 @@
   ('P008', '隱藏版高粱特調', '酒類', NULL, 5); -- 價格未定
   ```
 
+  <img width="282" height="358" alt="image" src="https://github.com/user-attachments/assets/ce9e8c12-1979-4232-ac11-05e7a9254831" />
+  <img width="520" height="238" alt="image" src="https://github.com/user-attachments/assets/5a0456ce-2514-453a-bcc1-1fe32e9f525c" />
+
 ---
 
 ## 📖 第一部分：理論與 SQL 實戰 (深度解析)
@@ -57,6 +60,8 @@
 > **💼 業界實務補充：**
 > 在業界，強烈建議**不要**使用 `SELECT *`。當資料表有數十個欄位、包含大量圖片路徑或長篇描述時，`SELECT *` 會嚴重消耗網路頻寬。養成「要什麼欄位，就 SELECT 什麼欄位」的習慣，是資深工程師的基本素養。
 
+<img width="642" height="674" alt="image" src="https://github.com/user-attachments/assets/06cd9257-644f-497e-9531-7fa93fcc711e" />
+
 ### 2. 多重條件過濾與陷阱 (WHERE, AND, OR)
 
   ```sql
@@ -64,13 +69,18 @@
   SELECT * FROM products WHERE category = '伴手禮' AND stock < 400;
   ```
 
+  <img width="797" height="517" alt="image" src="https://github.com/user-attachments/assets/50c3d2fa-4ab2-4149-bb64-53ae5a5dc3be" />
+
 > **💣 易錯提醒：AND 與 OR 的優先順序陷阱**
-> 假設老闆說：「幫我找出**伴手禮或肉品**，而且**庫存大於 100** 的商品」。
-> 如果你寫成：`WHERE category = '伴手禮' OR category = '肉品' AND stock > 100`，結果會大錯特錯！因為 SQL 會先執行 `AND` 再執行 `OR`。
+> 假設老闆說：「幫我找出**伴手禮或肉品**，而且**庫存大於 400** 的商品」。
+> 如果你寫成：`WHERE category = '伴手禮' OR category = '肉品' AND stock > 400`，結果會大錯特錯！因為 SQL 會先執行 `AND` 再執行 `OR`。
+  <img width="1031" height="412" alt="image" src="https://github.com/user-attachments/assets/26299fe3-4b89-4489-a274-5e0344773d56" />
+
 > **正確寫法 (必須加括號)：**
 > ```sql
-> SELECT * FROM products WHERE (category = '伴手禮' OR category = '肉品') AND stock > 100;
+> SELECT * FROM products WHERE (category = '伴手禮' OR category = '肉品') AND stock > 400;
 > ```
+  <img width="1079" height="379" alt="image" src="https://github.com/user-attachments/assets/4a1adf24-6c37-4820-a1fa-0ed41c6ef2dd" />
 
 ### 3. 進階範圍過濾 (IN, BETWEEN, IS NULL)
 
