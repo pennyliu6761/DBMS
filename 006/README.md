@@ -252,7 +252,103 @@
           if 'conn' in locals(): conn.close()
   ```
 
+  <img width="772" height="845" alt="image" src="https://github.com/user-attachments/assets/bb3f2d9a-4881-4f84-86bb-0cab2fa524e0" />
+
 ---
+
+### Python (Streamlit) 全端系統拼裝(即時動態效果(無按鈕))
+  ```python
+  import streamlit as st
+  import pymysql
+  import pandas as pd
+  
+  # --- 1. 共用連線設定 ---
+  def get_connection():
+      return pymysql.connect(
+          host="127.0.0.1", user="root", password="nquchliu", 
+          database="kinmen_shop", charset="utf8mb4"
+      )
+  
+  # --- 2. 資料獲取與快取 (重點教學：效能優化) ---
+  @st.cache_data(ttl=60) # 緩存資料 60 秒，避免每動一次拉桿就連資料庫一次
+  def get_all_products():
+      """從資料庫抓取原始全表資料"""
+      try:
+          conn = get_connection()
+          query = "SELECT * FROM products"
+          df = pd.read_sql(query, conn)
+          conn.close()
+          return df
+      except Exception as e:
+          st.error(f"❌ 無法連線資料庫：{e}")
+          return pd.DataFrame()
+  
+  # --- 3. 頁面標題與美化 ---
+  st.set_page_config(page_title="金門特產系統", layout="wide")
+  st.title("🛒 金門在地特產進銷存系統")
+  st.markdown("### 💡 響應式查詢：撥動拉桿即時更新，無需按鈕")
+  st.divider()
+  
+  # --- 4. 讀取原始資料 ---
+  raw_df = get_all_products()
+  
+  if not raw_df.empty:
+      # 建立控制面板
+      st.header("🔍 即時商品搜尋 (關鍵字 + 價格區間)")
+      
+      col1, col2 = st.columns(2)
+  
+      with col1:
+          # 文字輸入框：即時取得搜尋字串
+          search_keyword = st.text_input("請輸入商品關鍵字：", placeholder="例如: 貢糖")
+  
+      with col2:
+          # 雙向價格滑桿：即時取得範圍 Tuple
+          # 改為 0~2000，預設 (0, 2000)
+          min_p, max_p = st.slider(
+              "請選擇價格區間：", 
+              min_value=0, max_value=2000, value=(0, 2000), step=50
+          )
+  
+      # --- 5. 核心：即時過濾邏輯 (重點教學：Pandas Filter) ---
+      # 處理價格 NULL (NaN)：將其視為 0 或標註為未定價
+      df_filter = raw_df.copy()
+      df_filter['price'] = pd.to_numeric(df_filter['price'], errors='coerce').fillna(0)
+  
+      # 利用 Pandas 的 Mask 進行過濾 (這行程式碼會在拉桿更動時自動重複執行)
+      mask = (
+          df_filter['product_name'].str.contains(search_keyword, case=False, na=False) &
+          (df_filter['price'] >= min_p) &
+          (df_filter['price'] <= max_p)
+      )
+      
+      # 取得最終過濾後的結果
+      final_df = raw_df[mask]
+  
+      # --- 6. 顯示結果 (即時連動) ---
+      st.info(f"符合篩選條件的商品：{len(final_df)} 筆")
+      
+      st.dataframe(
+          final_df, 
+          use_container_width=True,
+          hide_index=True,
+          column_config={
+              "product_id": "編號",
+              "product_name": "商品名稱",
+              "category": "分類",
+              "price": st.column_config.NumberColumn("價格", format="$%d"),
+              "stock": st.column_config.ProgressColumn("庫存水位", min_value=0, max_value=500)
+          }
+      )
+      
+      # 特效：當搜尋結果不為空且有輸入關鍵字時顯示
+      if search_keyword and not final_df.empty:
+          st.toast(f"已更新搜尋結果：{search_keyword}")
+  
+  else:
+      st.warning("⚠️ 目前資料庫沒有資料，請確認資料表內容。")
+  ```
+  <img width="1736" height="810" alt="image" src="https://github.com/user-attachments/assets/23b6c5eb-77e6-4be0-8c85-74d2dc54fa61" />
 
 ## ❓ 第四部分：常見問題與排解 (FAQ)
 
