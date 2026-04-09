@@ -110,7 +110,7 @@
                 """
                 
                 # 執行語法，將下拉選單選中的名字 (selected_actor) 傳入 %s
-                cursor.execute(query, (selected_actor,))
+                cursor.execute(query, (selected_actor,)) #selected_actor作為query內的%s參數
                 result = cursor.fetchall()
                 
                 if result:
@@ -131,6 +131,8 @@
     ```
 
 3. **記得存檔！**
+- 在MySQL Workbench 可以先測試SQL語法是否可行
+<img width="1005" height="633" alt="image" src="https://github.com/user-attachments/assets/62caeeff-bb22-47fc-b611-cdfc87bb7723" />
 
 ---
 
