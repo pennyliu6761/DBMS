@@ -147,3 +147,66 @@
     - 選擇任意一位演員（例如：`NICK WAHLBERG`），點擊按鈕，觀察系統是否能透過 JOIN 語法，跨越三張資料表抓出他演過的所有電影。
       
     <img width=50% height=auto alt="image" src="https://github.com/user-attachments/assets/c66cc1a3-59e4-42e7-b9aa-feed70dd416d" />
+
+
+## 🛠️ 補充說明 - 深入理解 Python `locals()` 與資源管理
+
+在資料庫開發中，確保程式在發生錯誤時能「優雅地關閉資源」是非常重要的。以下針對 `locals()` 的運用與現代化寫法進行解析。
+
+---
+
+### 1. 為什麼要用 `locals()`？
+
+在 Python 中，`locals()` 是一個內建函數，它會以**字典 (dict)** 的形式回傳當前程式執行位置的所有「區域變數」。
+
+在 `try...except...finally` 結構中，`finally` 區塊**無論如何都會執行**。使用 `locals()` 檢查是一種**防禦性編程 (Defensive Programming)** 的技巧：
+
+* **避免 NameError**：如果程式在執行到 `conn = get_connection()` 之前就噴錯（例如資料庫斷線），`conn` 變數根本還沒建立。此時若直接執行 `conn.close()`，會觸發 `NameError: name 'conn' is not defined`。
+* **關鍵邏輯**：`'conn' in locals()` 會檢查「目前的區域變數清冊中，是否存在一個叫做 `conn` 的名字」。
+* **優點**：確保只有在連線「成功建立」的情況下，才去執行關閉動作，避免程式在清理階段發生第二次崩潰。
+
+---
+
+### 2. `locals()` 的運作機制
+
+你可以把 `locals()` 想像成一個即時的 **「變數清單」**。
+
+```python
+def test_function():
+    a = 10
+    b = "Hello"
+    print(locals())
+
+test_function()
+# 輸出：{'a': 10, 'b': 'Hello'}
+```
+
+---
+
+### 3. 更現代、更簡潔的寫法
+
+雖然檢查 `locals()` 非常穩健，但在現代 Python 開發中，處理資料庫連線最推薦的做法是使用 **`with` 語句（上下文管理器 Context Manager）**。
+
+使用 `with` 可以讓你省去 `finally` 的手動關閉邏輯，Python 會在離開區塊時自動幫你處理：
+
+```python
+# ✅ 改寫建議：使用 with 語句 (Context Manager)
+try:
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            # 💡 演示用 (注意：實際開發請避免 f-string 拼接以防 SQL 注入)
+            sql = f"SELECT * FROM users WHERE user = '{user_input}'"
+            cursor.execute(sql)
+            result = cursor.fetchone()
+            # 離開此區塊時，Python 會自動呼叫 cursor.close() 與 conn.close()
+except Exception as e:
+    st.error(f"執行出錯：{e}")
+```
+
+---
+
+### 📝 總結
+
+`if 'conn' in locals():` 的白話文就是：
+
+> **「檢查看看我們剛才到底有沒有成功幫 `conn` 取到名字？如果有，現在才去關掉它。」**
