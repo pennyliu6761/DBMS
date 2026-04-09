@@ -97,6 +97,10 @@
   SELECT * FROM products WHERE price IS NULL;
   ```
 
+  <img width="729" height="390" alt="image" src="https://github.com/user-attachments/assets/b2b30a76-31c2-423c-93d0-51ddeb839c21" />
+  <img width="686" height="392" alt="image" src="https://github.com/user-attachments/assets/5104a3ce-d9f4-41bf-b361-61e25a4c7a88" />
+  <img width="645" height="345" alt="image" src="https://github.com/user-attachments/assets/ffe70d39-e443-4780-abe9-6085e55905fb" />
+
 ### 4. 模糊搜尋與筆數限制 (LIKE, ORDER BY, LIMIT)
 
   ```sql
@@ -107,6 +111,9 @@
   -- ORDER BY DESC (由大到小)，LIMIT 3 (只抓前三筆)
   SELECT product_name, price FROM products ORDER BY price DESC LIMIT 3;
   ```
+
+  <img width="730" height="347" alt="image" src="https://github.com/user-attachments/assets/82ea762b-b81b-4e24-abbe-5fc660f7dc5c" />
+  <img width="636" height="352" alt="image" src="https://github.com/user-attachments/assets/bb842676-551b-46ed-9dff-2f19c3b97e44" />
 
 ---
 
