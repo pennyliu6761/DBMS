@@ -110,7 +110,10 @@
                 """
                 
                 # 執行語法，將下拉選單選中的名字 (selected_actor) 傳入 %s
-                cursor.execute(query, (selected_actor,)) #selected_actor作為query內的%s參數
+                cursor.execute(query, [selected_actor])
+                #selected_actor作為query內的%s參數
+                #但是必須作成序列資料，因為cursor.execute()第二個參數指定接收序列資料
+                #因此不能用單一字串資料，會被拆解成字元串列。
                 result = cursor.fetchall()
                 
                 if result:
