@@ -356,6 +356,87 @@
   ```
   <img width="1736" height="810" alt="image" src="https://github.com/user-attachments/assets/23b6c5eb-77e6-4be0-8c85-74d2dc54fa61" />
 
+## 📊 補充教學 Pandas 基礎：深入理解布林遮罩 (Boolean Masking)
+
+在 Pandas 數據處理中，**Mask (遮罩)** 是過濾資料最核心、最高效的方法。本範例透過一個簡單的數值矩陣，拆解「遮罩」是如何像篩選器一樣工作的。
+
+---
+
+### 1. 範例程式碼：從陣列到遮罩過濾
+
+```python
+import pandas as pd
+
+# --- 步驟 A：建立原始數據 ---
+# 使用串列生成式建立 1 到 20 的連號清單
+df1 = [i for i in range(1, 21)]
+
+# 將清單轉為 Pandas Array
+df2 = pd.array(df1) 
+print("1. 原始一維陣列：")
+print(df2)
+
+# --- 步驟 B：數據重塑 (Reshape) ---
+# 將 20 個元素重塑為 5 列 (Rows) x 4 欄 (Columns) 的二維結構
+df3 = df2.reshape(5, 4)
+print("\n2. 重塑為 5x4 矩陣：")
+print(df3)
+
+# --- 步驟 C：封裝為 DataFrame ---
+# 將矩陣轉換為 Pandas 最常用的 DataFrame 格式
+df4 = pd.DataFrame(df3)
+print("\n3. 轉換後的 DataFrame (df4)：")
+print(df4)
+
+# --- 步驟 D：定義布林遮罩 (The Mask) ---
+# 建立一個與 DataFrame 列數(5列)長度完全一致的 True/False 列表
+# 這代表我們「只要最後兩列」
+tf = [False, False, False, True, True]
+
+# --- 步驟 E：套用遮罩執行過濾 ---
+# 當我們執行 df4[tf] 時，Pandas 會根據索引對位，只保留對應為 True 的資料列
+df5 = df4[tf]
+
+print("\n4. 套用遮罩 tf 之後的過濾結果 (df5)：")
+print(df5)
+```
+
+---
+
+### 2. 核心原理：遮罩是如何過篩的？
+
+當我們將布林列表 `tf` 傳入 `df4[tf]` 時，Pandas 內部執行了「對位檢查」的動作：
+
+| 索引 (Index) | 資料內容 (Data) | 遮罩值 (tf) | 動作 | 結果 |
+| :--- | :--- | :--- | :--- | :--- |
+| **Row 0** | `[1, 2, 3, 4]` | `False` | 攔截 | ❌ 不顯示 |
+| **Row 1** | `[5, 6, 7, 8]` | `False` | 攔截 | ❌ 不顯示 |
+| **Row 2** | `[9, 10, 11, 12]` | `False` | 攔截 | ❌ 不顯示 |
+| **Row 3** | `[13, 14, 15, 16]` | `True` | 通過 | ✅ **保留** |
+| **Row 4** | `[17, 18, 19, 20]` | `True` | 通過 | ✅ **保留** |
+
+---
+
+### 💡 Key Takeaways
+
+1. **對位性 (Alignment)**：
+   遮罩清單的長度必須與 DataFrame 的 **列數 (Index Length)** 完全相等。如果 `df4` 有 5 列，但你的 `tf` 只有 4 個值，程式會噴出 `ValueError`。
+
+2. **手動與自動的橋樑**：
+   * 在本範例中，我們「手動」寫出 `[False, ...]`。
+   * 在實戰中（如進銷存系統），我們會寫：`tf = df4[0] > 10`。
+   * **本質是一樣的**：電腦會先幫你算出一串 `True/False`，再丟進中括號裡執行過濾。
+
+3. **數據安全性**：
+   執行過濾後，`df4` 的原始資料並不會消失。`df5` 只是從中挑選出來的一個「視圖」或「副本」。這在處理重要數據（如庫存、金流）時非常重要。
+
+---
+
+### 🛠️ 延伸練習
+試試看，如果將 `tf` 改成 `[True, False, True, False, True]`，輸出的結果會是什麼？
+（答案：會顯示第 1、3、5 筆奇數列資料）
+
+
 ## ❓ 第四部分：常見問題與排解 (FAQ)
 
 1. **Q: `LIKE '%貢糖'` 和 `LIKE '%貢糖%'` 有什麼差別？**
