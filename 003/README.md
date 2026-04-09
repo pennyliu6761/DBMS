@@ -210,3 +210,22 @@ except Exception as e:
 `if 'conn' in locals():` 的白話文就是：
 
 > **「檢查看看我們剛才到底有沒有成功幫 `conn` 取到名字？如果有，現在才去關掉它。」**
+
+## 練習改寫
+```python
+actor_names = [] # 1. 先給預設值，保證後續程式碼不會因為沒變數而崩潰
+
+# 步驟 A：從資料庫撈出所有「合法的」演員全單，作為防呆下拉選單的資料來源
+try:
+    with get_connection() as conn:
+        with conn.cursor()  as cursor:
+    
+            # 使用 CONCAT 將 First Name 與 Last Name 合併成全名
+            cursor.execute("SELECT CONCAT(first_name, ' ', last_name) FROM actor")
+            
+            # 將撈出來的二維結果轉換成一維的 Python List: ['PENELOPE GUINESS', 'NICK WAHLBERG', ...]
+            actor_names = [row[0] for row in cursor.fetchall()]
+    
+except Exception as e:
+    st.error(f"讀取演員清單失敗：{e}")
+```
