@@ -72,7 +72,7 @@
     st.header("3. 演員電影作品查詢 (JOIN)")
 
     # 步驟 A：從資料庫撈出所有「合法的」演員全單，作為防呆下拉選單的資料來源
-    try:
+    try: # 嘗試執行的區塊
         conn = get_connection()
         cursor = conn.cursor()
         
@@ -82,12 +82,12 @@
         # 將撈出來的二維結果轉換成一維的 Python List: ['PENELOPE GUINESS', 'NICK WAHLBERG', ...]
         actor_names = [row[0] for row in cursor.fetchall()]
         
-    except Exception as e:
+    except Exception as e: # 若有錯誤要執行的區塊
         st.error(f"讀取演員清單失敗：{e}")
         actor_names = [] # 若失敗則給予空清單，避免後方程式當掉
-    finally:
-        if 'cursor' in locals(): cursor.close()
-        if 'conn' in locals(): conn.close()
+    finally: # 不論如何都執行的區塊
+        if 'cursor' in locals(): cursor.close() #檢查目前確實有cursor物件才關閉，不然會出錯
+        if 'conn' in locals(): conn.close() #檢查目前確實有conn物件才關閉，不然會出錯
 
     # 步驟 B：建立下拉選單，將剛剛撈出的 actor_names 放入
     if actor_names:
