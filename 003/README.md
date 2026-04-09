@@ -18,6 +18,12 @@
 - `film` (電影表)：只存電影基本資料（Primary Key: `film_id`）。
 - `film_actor` (橋接表)：只存哪位演員演了哪部電影。
 
+<img width="1139" height="578" alt="image" src="https://github.com/user-attachments/assets/179e0167-4858-4850-99dc-e2e7feeb1b96" />
+<img width="1184" height="618" alt="image" src="https://github.com/user-attachments/assets/3d88ddde-ab8f-40f3-9c17-9288e65d781b" />
+<img width="1161" height="479" alt="image" src="https://github.com/user-attachments/assets/a9fb873d-556d-4cd0-93ad-f3f9aa0b1246" />
+<img width="768" height="588" alt="image" src="https://github.com/user-attachments/assets/c97c77e7-dc79-4453-bd8c-f4a1fc34c3f3" />
+
+
 > [!IMPORTANT]
 > **為什麼不直接在 `film` 表裡面加一個「演員」欄位就好？**
 > 實務上， **一部電影有很多演員，一個演員也演過很多電影** ，這在資料庫中稱為 **「多對多 (N:M) 關係」** 。
