@@ -51,6 +51,11 @@
 > **💼 業界實務補充：為什麼主鍵 (PK) 這麼重要？**
 > 在業界，每一張資料表「絕對」要有主鍵。如果沒有主鍵，當你發現有兩筆名字同為「王小明」、其他內容也一模一樣的重複資料時，你將**永遠無法單獨刪除或修改其中一筆**，這會造成資料庫的災難。
 
+<img width="826" height="272" alt="image" src="https://github.com/user-attachments/assets/f2e3e450-1f9c-446e-8a53-c0d81bd4fcaa" />
+<img width="401" height="98" alt="image" src="https://github.com/user-attachments/assets/b552540e-a5f8-49cb-90a3-77aa97d831fb" />
+<img width="780" height="165" alt="image" src="https://github.com/user-attachments/assets/91b63862-364b-4002-a2b6-210826dc5ee0" />
+<img width="570" height="379" alt="image" src="https://github.com/user-attachments/assets/9c30b5ab-b766-4495-95a3-a6a1585d5e61" />
+
 ### 3. 修改與刪除資料表 (ALTER & DROP)
 
 實務上，系統上線後常會需要修改資料表結構。我們可以使用 `ALTER TABLE` 來進行微調。
