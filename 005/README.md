@@ -184,5 +184,4 @@
 
 4. 修正 EER 關聯圖。
 
-   <img width="1005" height="710" alt="image" src="https://github.com/user-attachments/assets/952752cc-cc03-4915-85b3-c66444af07c8" />
-
+   <img width="676" height="460" alt="image" src="https://github.com/user-attachments/assets/69b0feba-7299-479f-b5ec-a016f0d49ab8" />
