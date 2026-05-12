@@ -192,6 +192,8 @@ st.caption("數據最後更新時間：2026-05-12")
   st.divider()
   ```
 
+<img width="601" height="166" alt="image" src="https://github.com/user-attachments/assets/1a881d4e-03c6-484d-9168-85e2277c292c" />
+
 ### 步驟 2：聚合函數的應用 (指標卡片)
 
 我們透過 `SUM()` 和 `COUNT()` 撈出全店總計，並顯示在頂部卡片上。
@@ -224,6 +226,8 @@ st.caption("數據最後更新時間：2026-05-12")
       if 'cursor' in locals(): cursor.close()
       if 'conn' in locals(): conn.close()
   ```
+
+<img width="1366" height="326" alt="image" src="https://github.com/user-attachments/assets/c6b58196-bac5-4d99-8f3f-f8ed05b0ac0c" />
 
 ### 步驟 3：群組查詢與資料視覺化 (GROUP BY)
 
@@ -272,6 +276,8 @@ st.caption("數據最後更新時間：2026-05-12")
       if 'conn' in locals(): conn.close()
   ```
 
+<img width="1771" height="757" alt="image" src="https://github.com/user-attachments/assets/8201e397-21ad-4724-9d7d-3d24eae911fd" />
+
 ---
 
 ## ❓ 第四部分：常見問題與排解 (FAQ)
@@ -287,6 +293,9 @@ st.caption("數據最後更新時間：2026-05-12")
 
 ### 🟢 基礎題 (聚合計算)
 1. 請在 Workbench 寫一段 SQL，計算所有「肉品」的**平均售價 (AVG)**。
+
+<img width="786" height="431" alt="image" src="https://github.com/user-attachments/assets/37f4d0df-69b6-406f-a926-fc74be886b96" />
+
 2. 請寫一段 SQL，找出 `sales_records` 中，哪一天的銷售營業額最高？(提示：使用 `GROUP BY sale_date` 搭配 `ORDER BY ... DESC LIMIT 1`)
 
 ### 🟡 進階題 (WITH ROLLUP 的威力)
