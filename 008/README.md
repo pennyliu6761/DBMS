@@ -38,6 +38,8 @@
   ('高粱牛肉乾(原味)', '肉品', 250, 8, '2026-04-05'),
   ('一條根貼布', '保健品', 120, 30, '2026-04-05');
   ```
+<img width="208" height="401" alt="image" src="https://github.com/user-attachments/assets/2d45724f-5edb-4c89-b188-50eba43bcf7f" />
+<img width="435" height="170" alt="image" src="https://github.com/user-attachments/assets/d39ccc10-271b-41a0-bbd3-aebf3ab467c0" />
 
 ---
 
@@ -57,6 +59,9 @@
   -- 找出客單價「最高」與「最低」的商品售價？(MAX, MIN)
   SELECT MAX(sale_price) AS '最高單價', MIN(sale_price) AS '最低單價' FROM sales_records;
   ```
+  <img width="158" height="49" alt="image" src="https://github.com/user-attachments/assets/ea32dacc-a2ac-482b-ae66-f2be86c7541e" />
+  <img width="127" height="46" alt="image" src="https://github.com/user-attachments/assets/20e7c674-c893-4c1e-a08d-15f1992636c5" />
+  <img width="216" height="46" alt="image" src="https://github.com/user-attachments/assets/5dd57b6a-41ae-44fb-8943-e80cdb1443b1" />
 
 ### 2. 群組查詢 (GROUP BY) 與小計 (WITH ROLLUP)
 
@@ -68,14 +73,16 @@
   FROM sales_records
   GROUP BY category;
   ```
+  <img width="169" height="130" alt="image" src="https://github.com/user-attachments/assets/eb2b5358-add7-4303-96b9-4aaf56e389b6" />
 
 > **💼 業界實務補充：超強大的 `WITH ROLLUP`**
 > 在業界產出財務報表時，我們不只要看「各類別的小計」，還要看最下面的「總計」。MySQL 提供了 `WITH ROLLUP` 關鍵字，能自動幫你在最後一行補上總和！
-> ```sql
-> SELECT category AS '商品類別', SUM(qty) AS '總銷售量'
-> FROM sales_records
-> GROUP BY category WITH ROLLUP;
-> ```
+  ```sql
+  SELECT category AS '商品類別', SUM(qty) AS '總銷售量'
+  FROM sales_records
+  GROUP BY category WITH ROLLUP;
+  ```
+  <img width="187" height="124" alt="image" src="https://github.com/user-attachments/assets/09f613ba-d989-4a25-886d-e8a95e5ea9ec" />
 
 ### 3. 群組後的條件過濾 (HAVING) 與排序限制 (ORDER BY & LIMIT)
 
@@ -87,6 +94,7 @@
   HAVING SUM(qty) > 10
   ORDER BY total_qty DESC;
   ```
+  <img width="153" height="76" alt="image" src="https://github.com/user-attachments/assets/d57072bf-58ef-400b-a6a8-eea2a9553f63" />
 
 > **💣 易錯提醒：`WHERE` 與 `HAVING` 到底差在哪？**
 > 這絕對是期中考的必考題！
@@ -107,6 +115,54 @@
 > 1. 請幫我利用 `st.columns` 在網頁最上方建立三個『指標卡片 (Metric Cards)』，用來顯示：總營業額、總訂單數、最熱銷類別 (先給假資料即可，使用 `st.metric`)。
 > 2. 在指標卡片下方，建立兩個區塊：左邊區塊預留放『長條圖』，右邊區塊預留放『詳細數據表格』。
 > 3. 請加上分隔線與適當的標題。只給我排版架構的程式碼就好。」
+
+<img width="780" height="595" alt="image" src="https://github.com/user-attachments/assets/a12f31d2-adf0-4a82-bb8b-446c04546624" />
+
+```python
+import streamlit as st
+
+# 設定網頁標題
+st.set_page_config(page_title="金門特產銷售儀表板", layout="wide")
+st.title("🏯 金門特產銷售數據儀表板")
+st.markdown("---")
+
+### 1. 最上方：指標卡片區區 (Metric Cards)
+# 建立三欄位
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric(label="💰 總營業額", value="NT$ 1,280,000", delta="12%")
+
+with col2:
+    st.metric(label="📦 總訂單數", value="1,560 筆", delta="5%")
+
+with col3:
+    st.metric(label="🏆 最熱銷類別", value="高粱酒系列", delta="穩定上升")
+
+st.markdown("---")
+
+### 2. 下方：圖表與數據區塊
+# 建立比例為 6:4 的兩個欄位
+left_column, right_column = st.columns([6, 4])
+
+with left_column:
+    st.subheader("📊 銷售趨勢分析 (長條圖)")
+    # 預留空間，未來可放入 st.bar_chart 或 plotly 圖表
+    st.info("這裡是預留給『長條圖』的區塊")
+    # st.bar_chart(data) 
+
+with right_column:
+    st.subheader("📋 詳細數據表格")
+    # 預留空間，未來可放入 st.dataframe 或 st.table
+    st.info("這裡是預留給『詳細數據表格』的區塊")
+    # st.dataframe(df)
+
+st.markdown("---")
+st.caption("數據最後更新時間：2026-05-12")
+```
+
+<img width="811" height="469" alt="image" src="https://github.com/user-attachments/assets/3bccd708-2436-4abb-8c99-53d7af09a63b" />
+
 
 > **🧠 Prompt 解析 (思維訓練)：**
 > Streamlit 雖然寫起來像一般的 Python 腳本，但透過 `st.columns` 可以做出非常專業的排版。讓 AI 先幫我們把「空殼」架好，我們後續再把 SQL 撈出來的真資料填進去，能大幅降低開發的挫折感。
