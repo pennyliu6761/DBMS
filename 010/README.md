@@ -53,14 +53,18 @@
 
   ```sql
   -- 單筆更新：將「金門高粱醋」的價格調降為 300 元
+  SET SQL_SAFE_UPDATES = 0;  -- 暫時關閉 Safe Mode
   UPDATE products_backup 
   SET price = 300 
   WHERE product_id = 'P009';
+  SET SQL_SAFE_UPDATES = 1;  -- 啟動 Safe Mode
 
   -- 多欄位與批次更新：將所有「肉品」的價格調漲 10%，且庫存統一加 50
+  SET SQL_SAFE_UPDATES = 0;  -- 暫時關閉 Safe Mode
   UPDATE products_backup 
   SET price = price * 1.1, stock = stock + 50 
   WHERE category = '肉品';
+  SET SQL_SAFE_UPDATES = 1;  -- 啟動 Safe Mode
   ```
 
 > **💣 業界核彈級地雷：忘記加 WHERE 條件**
@@ -71,12 +75,16 @@
 
   ```sql
   -- 基本刪除：刪除代號為 P009 的商品
+  SET SQL_SAFE_UPDATES = 0;  -- 暫時關閉 Safe Mode
   DELETE FROM products_backup WHERE product_id = 'P009';
+  SET SQL_SAFE_UPDATES = 1;  -- 啟動 Safe Mode
 
   -- 課本進階技巧：子查詢與合併刪除 (DELETE with JOIN)
   -- 刪除所有「沒有出現在訂單明細中」的滯銷商品
+  SET SQL_SAFE_UPDATES = 0;  -- 暫時關閉 Safe Mode
   DELETE FROM products_backup 
   WHERE product_id NOT IN (SELECT DISTINCT product_id FROM order_details);
+  SET SQL_SAFE_UPDATES = 1;  -- 啟動 Safe Mode
   ```
 
 > **💡 觀念釐清：`DELETE` vs `TRUNCATE TABLE`**
@@ -140,6 +148,8 @@
       if 'conn' in locals(): conn.close()
   ```
 
+  <img width="663" height="524" alt="image" src="https://github.com/user-attachments/assets/c694bb60-08dd-42ac-84ad-cd980bbd1166" />
+
 ### 步驟 2：實作 UPDATE 更新價格功能
 
   ```python
@@ -183,6 +193,8 @@
               st.warning("請輸入商品代號！")
   ```
 
+  <img width="662" height="312" alt="image" src="https://github.com/user-attachments/assets/791db8b1-99c7-488b-9c3d-b760ca1aecc4" />
+
 ### 步驟 3：實作 DELETE 刪除商品功能
 
   ```python
@@ -221,6 +233,8 @@
           else:
               st.warning("請輸入商品代號！")
   ```
+
+  <img width="661" height="549" alt="image" src="https://github.com/user-attachments/assets/26e8b01b-388a-4220-9273-cf064d26fdbf" />
 
 ---
 
