@@ -14,20 +14,23 @@
 
 為了讓稍後的邏輯判斷與空值處理更有感，我們繼續使用 `kinmen_shop` 資料庫中的 `products` (商品表)。請在 MySQL Workbench 執行以下語法，故意製造一些空值與極端的庫存狀態：
 
-  ```sql
-  USE kinmen_shop;
+```sql
+USE kinmen_shop;
 
-  -- 1. 將隱藏版特調的庫存設為 0，價格設為 NULL (測試 IFNULL)
-  UPDATE products SET stock = 0, price = NULL WHERE product_id = 'P008';
-  
-  -- 2. 將砲彈鋼刀的庫存設為 15 (測試低庫存警告)
-  UPDATE products SET stock = 15 WHERE product_id = 'P006';
+-- 1. 將隱藏版特調的庫存設為 0，價格設為 NULL (測試 IFNULL)
+UPDATE products SET stock = 0, price = NULL WHERE product_id = 'P008';
 
-  -- 3. 新增一個測試用的「會員評等」欄位 (測試 ELT 函數)
-  ALTER TABLE customers ADD COLUMN rating INT DEFAULT 1;
-  UPDATE customers SET rating = 3 WHERE customer_id = 'C001';
-  UPDATE customers SET rating = 2 WHERE customer_id = 'C002';
-  ```
+-- 2. 將砲彈鋼刀的庫存設為 15 (測試低庫存警告)
+UPDATE products SET stock = 15 WHERE product_id = 'P006';
+
+-- 3. 新增一個測試用的「會員評等」欄位 (測試 ELT 函數)
+ALTER TABLE customers ADD COLUMN rating INT DEFAULT 1;
+UPDATE customers SET rating = 3 WHERE customer_id = 'C001';
+UPDATE customers SET rating = 2 WHERE customer_id = 'C002';
+```
+
+<img width="371" height="223" alt="image" src="https://github.com/user-attachments/assets/bf9c9bdc-d1e9-4415-8aa8-c8e57fa4cbfc" />
+<img width="302" height="109" alt="image" src="https://github.com/user-attachments/assets/4eab40f1-27b9-4b85-97ca-cba58cabc674" />
 
 ---
 
@@ -36,75 +39,92 @@
 ### 1. 使用變數 (Variables)
 在 SQL 中，我們可以宣告變數並暫存資料。MySQL/MariaDB 中的「使用者定義變數」會以 `@` 開頭。這在做「全館統一折扣」這類情境時非常實用。
 
-  ```sql
-  -- 【實戰一：全館動態折扣設定】
-  -- 宣告一個變數 @discount_rate 並賦值為 0.85 (85折)
-  SET @discount_rate = 0.85;
+```sql
+-- 【實戰一：全館動態折扣設定】
+-- 宣告一個變數 @discount_rate 並賦值為 0.85 (85折)
+SET @discount_rate = 0.85;
 
-  -- 在查詢中直接呼叫這個變數參與數學運算！
-  SELECT 
-      product_name AS '商品名稱', 
-      price AS '原價', 
-      ROUND(price * @discount_rate) AS '員工優惠價' 
-  FROM products;
-  ```
+-- 在查詢中直接呼叫這個變數參與數學運算！
+SELECT 
+    product_name AS '商品名稱', 
+    price AS '原價', 
+    ROUND(price * @discount_rate) AS '員工優惠價' 
+FROM products;
+```
+
+<img width="245" height="223" alt="image" src="https://github.com/user-attachments/assets/0016848b-af9c-4cde-abf1-1afab26f2270" />
 
 ### 2. 空值處理函數 (IFNULL)
 在程式開發中，任何數字與 `NULL` 進行數學運算，結果必定是 `NULL`。為了避免算不出總價的慘劇，必須使用 `IFNULL()`。
 
-  ```sql
-  -- 語法：IFNULL(可能為空的欄位或運算式, 替代值)
-  
-  -- 錯誤示範：遇到 P008 (價格 NULL)，算出來的總值會變成 NULL
-  SELECT product_name, (price * stock) AS '錯誤總值' FROM products;
+```sql
+-- 語法：IFNULL(可能為空的欄位或運算式, 替代值)
 
-  -- 正確示範：如果 price 是 NULL，就把它當成 0 來計算！
-  SELECT 
-      product_name, 
-      price,
-      (IFNULL(price, 0) * stock) AS '安全計算總值' 
-  FROM products;
-  ```
+-- 錯誤示範：遇到價格或庫存 NULL，算出來的總值會變成 NULL
+SELECT product_name, (price * stock) AS '錯誤總值' FROM products;
+```
+
+<img width="188" height="230" alt="image" src="https://github.com/user-attachments/assets/8cb3368f-4860-419f-97a7-c58cfb67a955" />
+
+```sql
+-- 正確示範：如果 price 或 stock 是 NULL，就把它當成 0 來計算！
+SELECT 
+    product_name, 
+    price,
+    stock,
+    (IFNULL(price, 0) * IFNULL(stock, 0)) AS '安全計算總值' 
+FROM products;
+```
+
+<img width="326" height="215" alt="image" src="https://github.com/user-attachments/assets/5ebbc809-a990-46ef-b723-e5fab8bb1f44" />
 
 ### 3. 單一條件判斷 (IF 函數) 與 字串選擇 (ELT 函數)
 就像 Python 裡的 `if...else`，MySQL 也提供了單行的 `IF()` 函數。而 `ELT()` 則是 MySQL/MariaDB 特有的超強字串對應函數。
 
-  ```sql
-  -- 【實戰二：IF 條件判斷】
-  -- 語法：IF(條件運算式, 條件為真時的回傳值, 條件為假時的回傳值)
-  SELECT 
-      product_name, 
-      stock, 
-      IF(stock = 0, '🚨 嚴重缺貨', '✅ 供貨正常') AS '庫存狀態'
-  FROM products;
+```sql
+-- 【實戰二：IF 條件判斷】
+-- 語法：IF(條件運算式, 條件為真時的回傳值, 條件為假時的回傳值)
+SELECT 
+    product_name, 
+    stock, 
+    IF(IFNULL(stock, 0) = 0, '🚨 嚴重缺貨', '✅ 供貨正常') AS '庫存狀態'
+FROM products;
+```
 
-  -- 【實戰三：ELT 字串選擇】
-  -- 語法：ELT(索引數字, 字串1, 字串2, 字串3...)
-  -- 我們利用剛才建立的 rating (1~3) 欄位，直接轉換成中文的會員等級！
-  SELECT 
-      customer_name, 
-      rating,
-      ELT(rating, '🥉 銅牌會員', '🥈 銀牌會員', '🥇 金牌會員') AS '會員等級'
-  FROM customers;
-  ```
+<img width="235" height="211" alt="image" src="https://github.com/user-attachments/assets/ed0c3ec5-a826-47e6-96a8-2eff3a00756e" />
+
+```sql
+-- 【實戰三：ELT 字串選擇】
+-- 語法：ELT(索引數字, 字串1, 字串2, 字串3...)
+-- 我們利用剛才建立的 rating (1~3) 欄位，直接轉換成中文的會員等級！
+SELECT 
+    customer_name, 
+    rating,
+    ELT(rating, '🥉 銅牌會員', '🥈 銀牌會員', '🥇 金牌會員') AS '會員等級'
+FROM customers;
+```
+
+<img width="227" height="100" alt="image" src="https://github.com/user-attachments/assets/49f1b9d8-c1ce-47a6-9486-debbd62a3c4d" />
 
 ### 4. 多重條件判斷 (CASE...WHEN...THEN)
 
 當你的條件超過兩個（例如：庫存充足、低庫存、缺貨），重複使用 `IF()` 會像毛線一樣糾結。這時候業界最愛用的就是 `CASE` 語法！
 
-  ```sql
-  -- 【實戰四：精細的庫存紅綠燈系統】
-  SELECT 
-      product_name, 
-      stock,
-      CASE 
-          WHEN stock > 100 THEN '🟢 庫存充足'
-          WHEN stock BETWEEN 1 AND 100 THEN '🟡 庫存緊張(即將售罄)'
-          ELSE '🔴 缺貨中'
-      END AS '庫存紅綠燈'
-  FROM products
-  ORDER BY stock ASC;
-  ```
+```sql
+-- 【實戰四：精細的庫存紅綠燈系統】
+SELECT 
+    product_name, 
+    stock,
+    CASE 
+        WHEN IFNULL(stock, 0) > 100 THEN '🟢 庫存充足'
+        WHEN IFNULL(stock, 0) BETWEEN 1 AND 100 THEN '🟡 庫存緊張(即將售罄)'
+        ELSE '🔴 缺貨中'
+    END AS '庫存紅綠燈'
+FROM products
+ORDER BY stock ASC;
+```
+
+<img width="293" height="214" alt="image" src="https://github.com/user-attachments/assets/7d8aa3d9-d189-4648-afc3-1cfe9aa8bbd1" />
 
 > **💼 業界實務補充：為什麼要把邏輯寫在 SQL 裡？**
 > 很多初學者會把所有資料 `SELECT *` 撈回 Python，再用 Pandas 慢慢寫 `if-else` 判斷。這在資料只有 10 筆時沒感覺，但當資料有 100 萬筆時，將百萬筆資料塞滿網路頻寬傳到 Python 是極度浪費效能的。將這類單純的列級 (Row-level) 邏輯判斷，交給底層由 C/C++ 撰寫的資料庫引擎 (如 `CASE`)，運算速度會快上數十倍！
@@ -134,100 +154,104 @@
 
 請在 Spyder 開啟 `app.py`。我們將打造一個結合「MySQL Session 變數 (`@var`)」與「`CASE` 邏輯判斷」的超強後台儀表板，完美展現前後端邏輯分工的藝術。
 
-  ```python
-  import streamlit as st
-  import pymysql
-  import pandas as pd
+```python
+import streamlit as st
+import pymysql
+import pandas as pd
 
-  def get_connection():
-      return pymysql.connect(
-          host="127.0.0.1", user="root", password="1234", 
-          database="kinmen_shop", charset="utf8mb4"
-      )
+def get_connection():
+    return pymysql.connect(
+        host="127.0.0.1", user="root", password="1234", 
+        database="kinmen_shop", charset="utf8mb4"
+    )
 
-  st.set_page_config(layout="wide")
-  st.title("🎛️ 特產店動態定價與庫存警報系統")
-  st.markdown("展示如何在 Python 中傳遞 SQL 變數，並利用 `CASE` 將商業邏輯實作於資料庫層。")
-  st.divider()
+st.set_page_config(layout="wide")
+st.title("🎛️ 特產店動態定價與庫存警報系統")
+st.markdown("展示如何在 Python 中傳遞 SQL 變數，並利用 `CASE` 將商業邏輯實作於資料庫層。")
+st.divider()
 
-  # --- 步驟 1：UI 控制面板 (動態設定折扣) ---
-  st.header("1. 🎯 員工購物節：全館動態折扣模擬")
-  
-  # 使用 Streamlit 滑桿讓店長選擇折扣數
-  discount_input = st.slider("請設定今日全館折扣 (%)", min_value=10, max_value=100, value=85, step=5)
-  # 將百分比轉為小數 (例如 85 -> 0.85)
-  discount_rate = discount_input / 100.0 
+# --- 步驟 1：UI 控制面板 (動態設定折扣) ---
+st.header("1. 🎯 員工購物節：全館動態折扣模擬")
 
-  if st.button("套用折扣並預覽價格", type="primary"):
-      try:
-          conn = get_connection()
-          cursor = conn.cursor()
-          
-          # 【進階技巧：Session 變數傳遞】
-          # 先執行 SET 指令設定 MySQL 端的使用者變數
-          cursor.execute("SET @py_discount = %s", (discount_rate,))
-          
-          # 執行 SELECT，直接在 SQL 內運算折扣，並利用 IFNULL 處理空值避免報錯
-          query_discount = """
-          SELECT 
-              product_name AS '商品名稱',
-              IFNULL(price, 0) AS '原價',
-              ROUND(IFNULL(price, 0) * @py_discount) AS '今日活動價'
-          FROM products
-          """
-          cursor.execute(query_discount)
-          result = cursor.fetchall()
-          
-          if result:
-              columns = [col[0] for col in cursor.description]
-              df = pd.DataFrame(result, columns=columns)
-              st.success(f"✅ 已成功套用 {discount_input} 折優惠！")
-              st.dataframe(df, use_container_width=True)
-              
-      except Exception as e:
-          st.error(f"執行失敗：{e}")
-      finally:
-          if 'cursor' in locals(): cursor.close()
-          if 'conn' in locals(): conn.close()
+# 使用 Streamlit 滑桿讓店長選擇折扣數
+discount_input = st.slider("請設定今日全館折扣 (%)", min_value=10, max_value=100, value=85, step=5)
+# 將百分比轉為小數 (例如 85 -> 0.85)
+discount_rate = discount_input / 100.0 
 
-  st.divider()
+if st.button("套用折扣並預覽價格", type="primary"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # 【進階技巧：Session 變數傳遞】
+        # 先執行 SET 指令設定 MySQL 端的使用者變數
+        cursor.execute("SET @py_discount = %s", (discount_rate,))
+        
+        # 執行 SELECT，直接在 SQL 內運算折扣，並利用 IFNULL 處理空值避免報錯
+        query_discount = """
+        SELECT 
+            product_name AS '商品名稱',
+            IFNULL(price, 0) AS '原價',
+            ROUND(IFNULL(price, 0) * @py_discount) AS '今日活動價'
+        FROM products
+        """
+        cursor.execute(query_discount)
+        result = cursor.fetchall()
+        
+        if result:
+            columns = [col[0] for col in cursor.description]
+            df = pd.DataFrame(result, columns=columns)
+            st.success(f"✅ 已成功套用 {discount_input} 折優惠！")
+            st.dataframe(df, use_container_width=True)
+            
+    except Exception as e:
+        st.error(f"執行失敗：{e}")
+    finally:
+        if 'cursor' in locals(): cursor.close()
+        if 'conn' in locals(): conn.close()
 
-  # --- 步驟 2：利用 CASE 實作庫存紅綠燈 ---
-  st.header("2. 🚦 智能庫存警報器 (SQL CASE 實作)")
+st.divider()
 
-  if st.button("掃描全店庫存狀態"):
-      try:
-          conn = get_connection()
-          cursor = conn.cursor()
-          
-          # 【逐行解析】把複雜的分類邏輯寫在 SQL 的 CASE WHEN 裡面
-          # Python 端完全不用寫 if-else，只要負責顯示結果就好！
-          query_stock = """
-          SELECT 
-              product_name AS '商品',
-              stock AS '目前庫存量',
-              CASE 
-                  WHEN stock = 0 THEN '🔴 缺貨中 (請立即叫貨)'
-                  WHEN stock BETWEEN 1 AND 50 THEN '🟡 庫存緊張 (建議補貨)'
-                  ELSE '🟢 庫存充足'
-              END AS '系統建議動作'
-          FROM products
-          ORDER BY stock ASC
-          """
-          cursor.execute(query_stock)
-          result = cursor.fetchall()
-          
-          if result:
-              columns = [col[0] for col in cursor.description]
-              df_stock = pd.DataFrame(result, columns=columns)
-              st.dataframe(df_stock, use_container_width=True)
-              
-      except Exception as e:
-          st.error(f"執行失敗：{e}")
-      finally:
-          if 'cursor' in locals(): cursor.close()
-          if 'conn' in locals(): conn.close()
-  ```
+# --- 步驟 2：利用 CASE 實作庫存紅綠燈 ---
+st.header("2. 🚦 智能庫存警報器 (SQL CASE 實作)")
+
+if st.button("掃描全店庫存狀態"):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # 【逐行解析】把複雜的分類邏輯寫在 SQL 的 CASE WHEN 裡面
+        # Python 端完全不用寫 if-else，只要負責顯示結果就好！
+        query_stock = """
+        SELECT 
+            product_name AS '商品',
+            stock AS '目前庫存量',
+            CASE 
+                WHEN stock = 0 THEN '🔴 缺貨中 (請立即叫貨)'
+                WHEN stock BETWEEN 1 AND 50 THEN '🟡 庫存緊張 (建議補貨)'
+                ELSE '🟢 庫存充足'
+            END AS '系統建議動作'
+        FROM products
+        ORDER BY stock ASC
+        """
+        cursor.execute(query_stock)
+        result = cursor.fetchall()
+        
+        if result:
+            columns = [col[0] for col in cursor.description]
+            df_stock = pd.DataFrame(result, columns=columns)
+            st.dataframe(df_stock, use_container_width=True)
+            
+    except Exception as e:
+        st.error(f"執行失敗：{e}")
+    finally:
+        if 'cursor' in locals(): cursor.close()
+        if 'conn' in locals(): conn.close()
+```
+
+<img width="1794" height="610" alt="image" src="https://github.com/user-attachments/assets/884c5af7-c742-4f64-83b5-bc4683f825b3" />
+<img width="1765" height="680" alt="image" src="https://github.com/user-attachments/assets/71381889-6a77-4efc-a4a3-b610775b62e8" />
+<img width="1760" height="538" alt="image" src="https://github.com/user-attachments/assets/cec0cb19-6a4b-4104-956b-5feb5e901890" />
 
 ---
 
