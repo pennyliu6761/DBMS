@@ -14,13 +14,19 @@
 
 為了展示檢視表的「隱藏欄位」功能，請先在 MySQL Workbench 執行以下語法，為我們的 `products` 表加上一個代表進貨成本的欄位：
 
-  ```sql
-  USE kinmen_shop;
+```sql
+USE kinmen_shop;
 
-  -- 新增進貨成本欄位，並隨機更新一些假資料
-  ALTER TABLE products ADD COLUMN cost INT;
-  UPDATE products SET cost = price * 0.5; -- 假設成本是售價的一半
-  ```
+-- 新增進貨成本欄位，並隨機更新一些假資料
+ALTER TABLE products ADD COLUMN cost INT;
+
+-- 假設成本是售價的一半
+SET SQL_SAFE_UPDATES = 0; -- 暫時關閉安全模式
+UPDATE products SET cost = price * 0.5;
+SET SQL_SAFE_UPDATES = 1;  -- 執行完畢後再開回來
+```
+
+<img width="367" height="172" alt="image" src="https://github.com/user-attachments/assets/acfaae01-6cf6-48a1-8122-093abe06254b" />
 
 ---
 
@@ -29,64 +35,86 @@
 ### 1. 建立檢視表 (CREATE VIEW)
 檢視表本身不佔用硬碟空間存資料，它儲存的其實是「一段 SQL 查詢語法」。
 
-  ```sql
-  -- 【實戰一：隱藏機密欄位】
-  -- 建立一個只給工讀生看的「安全檢視表」，把 cost (成本) 欄位藏起來
-  CREATE VIEW view_safe_products AS
-  SELECT product_id, product_name, category, price, stock 
-  FROM products;
+```sql
+-- 【實戰一：隱藏機密欄位】
+-- 建立一個只給工讀生看的「安全檢視表」，把 cost (成本) 欄位藏起來
+CREATE VIEW view_safe_products AS
+SELECT product_id, product_name, category, price, stock 
+FROM products;
 
-  -- 以後工讀生只要查詢這個 View，就像在查一般的 Table 一樣！
-  SELECT * FROM view_safe_products;
-  ```
+-- 以後工讀生只要查詢這個 View，就像在查一般的 Table 一樣！
+SELECT * FROM view_safe_products;
+```
+
+<img width="191" height="240" alt="image" src="https://github.com/user-attachments/assets/085ae62f-a5b5-4e09-9c98-f09f3a9450a2" />
+<img width="465" height="537" alt="image" src="https://github.com/user-attachments/assets/81c34400-e7bc-4a84-9ce9-0a8afb2a5141" />
 
 > **💼 業界實務補充 (與 AI/ML 結合)：**
 > 在工業工程與資料科學領域，我們常需要乾淨的 Dataset 來訓練機器學習模型。資料工程師通常會預先寫好一個包含極度複雜 JOIN 與資料清洗的 `VIEW`，資料科學家只要下 `SELECT * FROM clean_dataset_view` 就能直接拿去跑 Python 建模，大幅降低跨部門的溝通成本！
 
-  ```sql
-  -- 【實戰二：簡化複雜查詢】
-  -- 將跨越三張表 (會員、訂單、商品) 的複雜 JOIN 寫成一個 View
-  CREATE VIEW view_customer_orders AS
-  SELECT c.customer_name, p.product_name, o.qty, o.order_date
-  FROM order_details o
-  INNER JOIN customers c ON o.customer_id = c.customer_id
-  INNER JOIN products p ON o.product_id = p.product_id;
+```sql
+-- 【實戰二：簡化複雜查詢】
+-- 將跨越三張表 (會員、訂單、商品) 的複雜 JOIN 寫成一個 View
+CREATE VIEW view_customer_orders AS
+SELECT c.customer_name, p.product_name, o.qty, o.order_date
+FROM order_details o
+INNER JOIN customers c ON o.customer_id = c.customer_id
+INNER JOIN products p ON o.product_id = p.product_id;
 
-  -- 查詢時瞬間變得超級簡單！
-  SELECT * FROM view_customer_orders WHERE customer_name = '王大明';
-  ```
+-- 查詢時瞬間變得超級簡單！
+SELECT * FROM view_customer_orders WHERE customer_name = '王大明';
+```
+
+<img width="198" height="243" alt="image" src="https://github.com/user-attachments/assets/191908c2-c239-44f8-a370-6a4b5550dabf" />
+<img width="344" height="98" alt="image" src="https://github.com/user-attachments/assets/5b25a92b-967a-49bc-bd9a-36d179988a3f" />
 
 ### 2. 修改與刪除檢視表 (ALTER / DROP VIEW)
 檢視表的修改與刪除非常輕量，因為它只是刪除或覆寫一段查詢邏輯，不會影響到底層的真實資料。
 
-  ```sql
-  -- 修改檢視表 (例如：工讀生也不需要看到 stock 庫存欄位了)
-  ALTER VIEW view_safe_products AS
-  SELECT product_id, product_name, category, price 
-  FROM products;
+```sql
+-- 修改檢視表 (例如：工讀生也不需要看到 stock 庫存欄位了)
+ALTER VIEW view_safe_products AS
+SELECT product_id, product_name, category, price 
+FROM products;
+```
 
-  -- 刪除檢視表
-  DROP VIEW IF EXISTS view_safe_products;
-  ```
+<img width="351" height="158" alt="image" src="https://github.com/user-attachments/assets/56dccb2e-2591-44c3-bbaf-cab3153f60a6" />
+<img width="308" height="162" alt="image" src="https://github.com/user-attachments/assets/868ba31d-1235-4618-bbc5-7d47db14a6a6" />
+
+```sql
+-- 刪除檢視表
+DROP VIEW IF EXISTS view_safe_products;
+```
 
 ### 3. 編輯檢視表內容與防呆機制 (WITH CHECK OPTION)
 你可以透過檢視表來 `INSERT` 或 `UPDATE` 資料（這些異動會穿透回原始的 Base Table）。但為了防止資料錯亂，我們可以使用 `WITH CHECK OPTION` 來嚴格限制寫入規則！
 
-  ```sql
-  -- 建立一個「平價商品檢視表」(價格必須小於等於 200)
-  CREATE VIEW view_budget_items AS
-  SELECT * FROM products WHERE price <= 200
-  WITH CHECK OPTION; -- 加上這句，開啟終極防護！
+```sql
+-- 建立一個「平價商品檢視表」(價格必須小於等於 200)
+CREATE VIEW view_budget_items AS
+SELECT * FROM products WHERE price <= 200
+WITH CHECK OPTION; -- 加上這句，開啟終極防護！
+```
 
-  -- ⭕ 成功：透過 View 新增一個 150 元的商品
-  INSERT INTO view_budget_items (product_id, product_name, price) 
-  VALUES ('P010', '小包裝貢糖', 150);
+<img width="348" height="79" alt="image" src="https://github.com/user-attachments/assets/6b35a80a-da9a-488a-9e2d-a7916051f58d" />
 
-  -- ❌ 失敗報錯：企圖透過此 View 新增一個 500 元的商品
-  -- 因為違反了 WHERE price <= 200 的條件，會被 WITH CHECK OPTION 擋下！
-  INSERT INTO view_budget_items (product_id, product_name, price) 
-  VALUES ('P011', '豪華高粱', 500); 
-  ```
+```sql
+-- ⭕ 成功：透過 View 新增一個 150 元的商品
+INSERT INTO view_budget_items (product_id, product_name, price) 
+VALUES ('P010', '小包裝貢糖', 150);
+```
+
+<img width="346" height="97" alt="image" src="https://github.com/user-attachments/assets/bcd5a826-ed23-4b4a-b588-f084bad38de2" />
+
+```sql
+-- ❌ 失敗報錯：企圖透過此 View 新增一個 500 元的商品
+-- 因為違反了 WHERE price <= 200 的條件，會被 WITH CHECK OPTION 擋下！
+INSERT INTO view_budget_items (product_id, product_name, price) 
+VALUES ('P011', '豪華高粱', 500); 
+```
+
+<img width="501" height="20" alt="image" src="https://github.com/user-attachments/assets/9553f9fa-b511-41e9-8265-83e4c531ff82" />
+<img width="390" height="22" alt="image" src="https://github.com/user-attachments/assets/aaa7ef64-bb7e-447b-a10e-0383c4af34a0" />
 
 ---
 
@@ -112,79 +140,84 @@
 
 請在 Spyder 開啟 `app.py`。我們將驗證在 Python 裡呼叫 View 是多麼輕鬆的一件事，並體驗 `WITH CHECK OPTION` 的保護力。
 
-  ```python
-  import streamlit as st
-  import pymysql
-  import pandas as pd
+```python
+import streamlit as st
+import pymysql
+import pandas as pd
 
-  def get_connection():
-      return pymysql.connect(
-          host="127.0.0.1", user="root", password="1234", 
-          database="kinmen_shop", charset="utf8mb4"
-      )
+def get_connection():
+    return pymysql.connect(
+        host="127.0.0.1", user="root", password="1234", 
+        database="kinmen_shop", charset="utf8mb4"
+    )
 
-  st.set_page_config(layout="wide")
-  st.title("🛡️ 前台工讀生安全操作系統 (檢視表應用)")
-  st.markdown("透過 MySQL `VIEW` 保護進貨成本，並展示 `WITH CHECK OPTION` 的防護威力。")
-  st.divider()
+st.set_page_config(layout="wide")
+st.title("🛡️ 前台工讀生安全操作系統 (檢視表應用)")
+st.markdown("透過 MySQL `VIEW` 保護進貨成本，並展示 `WITH CHECK OPTION` 的防護威力。")
+st.divider()
 
-  # 建立左右兩欄排版
-  col_left, col_right = st.columns([0.6, 0.4])
+# 建立左右兩欄排版
+col_left, col_right = st.columns([0.6, 0.4])
 
-  # --- 左側區塊：讀取安全檢視表 ---
-  with col_left:
-      st.subheader("📋 商品型錄 (隱藏成本)")
-      try:
-          conn = get_connection()
-          # 💡 在 Python 中，讀取 View 跟讀取 Table 的語法一模一樣！
-          # 但此時前端絕對拿不到 cost (成本) 的資料，資安滿分。
-          query = "SELECT * FROM view_safe_products"
-          df = pd.read_sql(query, conn)
-          st.dataframe(df, use_container_width=True)
-      except Exception as e:
-          st.error(f"讀取型錄失敗：{e}")
-      finally:
-          if 'conn' in locals(): conn.close()
+# --- 左側區塊：讀取安全檢視表 ---
+with col_left:
+    st.subheader("📋 商品型錄 (隱藏成本)")
+    try:
+        conn = get_connection()
+        # 💡 在 Python 中，讀取 View 跟讀取 Table 的語法一模一樣！
+        # 但此時前端絕對拿不到 cost (成本) 的資料，資安滿分。
+        query = "SELECT * FROM view_safe_products"
+        df = pd.read_sql(query, conn)
+        st.dataframe(df, use_container_width=True)
+    except Exception as e:
+        st.error(f"讀取型錄失敗：{e}")
+    finally:
+        if 'conn' in locals(): conn.close()
 
-  # --- 右側區塊：寫入帶有限制條件的檢視表 ---
-  with col_right:
-      st.subheader("➕ 新增平價專區商品")
-      st.info("💡 測試：試著輸入超過 200 元的價格看看！")
-      
-      with st.form("budget_form"):
-          new_id = st.text_input("商品代號 (例如: P010)")
-          new_name = st.text_input("商品名稱")
-          new_price = st.number_input("商品售價", min_value=0, step=10, value=150)
-          
-          submit_btn = st.form_submit_button("新增至平價檢視表", type="primary")
-          
-          if submit_btn:
-              if new_id and new_name:
-                  try:
-                      conn = get_connection()
-                      cursor = conn.cursor()
-                      
-                      # 企圖寫入 view_budget_items (內含 price <= 200 的限制)
-                      insert_query = "INSERT INTO view_budget_items (product_id, product_name, price) VALUES (%s, %s, %s)"
-                      cursor.execute(insert_query, (new_id, new_name, new_price))
-                      conn.commit()
-                      
-                      st.success(f"✅ 成功新增平價商品：{new_name}！請重新整理左側型錄。")
-                      
-                  except pymysql.err.OperationalError as e:
-                      # 【精準錯誤捕捉】1369 代表違反了 View 的 WITH CHECK OPTION
-                      if e.args[0] == 1369:
-                          st.error("❌ 新增失敗：此商品定價超過 200 元，違反平價檢視表規則，資料庫拒絕寫入！")
-                      else:
-                          st.error(f"❌ 發生操作錯誤：{e}")
-                  except Exception as e:
-                      st.error(f"❌ 系統錯誤：{e}")
-                  finally:
-                      if 'cursor' in locals(): cursor.close()
-                      if 'conn' in locals(): conn.close()
-              else:
-                  st.warning("請填寫完整商品資訊！")
-  ```
+# --- 右側區塊：寫入帶有限制條件的檢視表 ---
+with col_right:
+    st.subheader("➕ 新增平價專區商品")
+    st.info("💡 測試：試著輸入超過 200 元的價格看看！")
+    
+    with st.form("budget_form"):
+        new_id = st.text_input("商品代號 (例如: P010)")
+        new_name = st.text_input("商品名稱")
+        new_price = st.number_input("商品售價", min_value=0, step=10, value=150)
+        
+        submit_btn = st.form_submit_button("新增至平價檢視表", type="primary")
+        
+        if submit_btn:
+            if new_id and new_name:
+                try:
+                    conn = get_connection()
+                    cursor = conn.cursor()
+                    
+                    # 企圖寫入 view_budget_items (內含 price <= 200 的限制)
+                    insert_query = "INSERT INTO view_budget_items (product_id, product_name, price) VALUES (%s, %s, %s)"
+                    cursor.execute(insert_query, (new_id, new_name, new_price))
+                    conn.commit()
+                    
+                    st.success(f"✅ 成功新增平價商品：{new_name}！請重新整理左側型錄。")
+                    
+                except pymysql.err.OperationalError as e:
+                    # 【精準錯誤捕捉】1369 代表違反了 View 的 WITH CHECK OPTION
+                    if e.args[0] == 1369:
+                        st.error("❌ 新增失敗：此商品定價超過 200 元，違反平價檢視表規則，資料庫拒絕寫入！")
+                    else:
+                        st.error(f"❌ 發生操作錯誤：{e}")
+                except Exception as e:
+                    st.error(f"❌ 系統錯誤：{e}")
+                finally:
+                    if 'cursor' in locals(): cursor.close()
+                    if 'conn' in locals(): conn.close()
+            else:
+                st.warning("請填寫完整商品資訊！")
+```
+
+<img width="1785" height="663" alt="image" src="https://github.com/user-attachments/assets/27b18b4d-6c8b-4ef2-bd74-583b7cdf1a92" />
+<img width="699" height="543" alt="image" src="https://github.com/user-attachments/assets/ef7a6bf8-7a8e-4bc0-b56c-fb2859f2293d" />
+<img width="692" height="528" alt="image" src="https://github.com/user-attachments/assets/99b60132-2957-4969-b1e5-ebf140a51eb5" />
+<img width="1059" height="476" alt="image" src="https://github.com/user-attachments/assets/67af01c6-fb2c-451b-b81f-34cf009c1e42" />
 
 ---
 
