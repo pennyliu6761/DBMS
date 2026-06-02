@@ -62,6 +62,8 @@ INSERT INTO vip_members (customer_id, phone_number, level, point_balance) VALUES
 ('C004', '0945-444-444', 'Bronze',   50);
 ```
 
+<img width="373" height="95" alt="image" src="https://github.com/user-attachments/assets/735d27d4-4d42-42e8-b4a4-41fdbaad438a" />
+
 ### 補充 products 成本欄位
 
 ```sql
@@ -81,6 +83,8 @@ SELECT v.member_id, c.customer_name, v.phone_number, v.level, v.point_balance
 FROM vip_members v
 JOIN customers c ON v.customer_id = c.customer_id;
 ```
+
+<img width="397" height="98" alt="image" src="https://github.com/user-attachments/assets/b79eea6f-d54f-4cce-abb3-ae4c108a806a" />
 
 ### 本單元資料表清單
 
@@ -112,6 +116,8 @@ EXECUTE stmt USING @id;
 -- 釋放預備語句
 DEALLOCATE PREPARE stmt;
 ```
+
+<img width="532" height="380" alt="image" src="https://github.com/user-attachments/assets/fc50584b-77eb-4f8a-ba97-4201747131be" />
 
 > **為什麼參數化查詢能防範 SQL Injection？**  
 > 資料庫會先「編譯」好指令框架，使用者輸入的參數只會被當作純字串，不會被誤認為 SQL 指令的一部分。
@@ -150,6 +156,8 @@ COMMIT;
 -- ② 情況 B：發生錯誤 → 撤銷所有動作
 -- ROLLBACK;
 ```
+
+<img width="387" height="98" alt="image" src="https://github.com/user-attachments/assets/133c9d3c-447f-46d8-a289-80ebad6456c8" />
 
 > **💡 小知識**  
 > 沒有執行 `COMMIT` 前，所有異動只暫存於記憶體。  
@@ -195,7 +203,6 @@ COMMIT;
 ```python
 import streamlit as st
 import pymysql
-
 
 def get_connection():
     """建立資料庫連線（關閉 autocommit 以支援交易）"""
@@ -264,6 +271,10 @@ with st.form("transfer_form"):
         finally:
             conn.close()
 ```
+
+<img width="734" height="834" alt="image" src="https://github.com/user-attachments/assets/6e158046-d60c-4e48-92d6-43e14b5acf79" />
+<img width="724" height="443" alt="image" src="https://github.com/user-attachments/assets/dbad9a01-82dd-476a-be0d-7e1211f3f971" />
+<img width="721" height="438" alt="image" src="https://github.com/user-attachments/assets/53d52fb5-be85-4b73-bb6f-06f3e741fdb4" />
 
 ---
 
