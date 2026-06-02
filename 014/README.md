@@ -1,4 +1,4 @@
-# 實作十四：預存程序、函數與觸發程序 (資料庫邏輯自動化實戰)
+<img width="369" height="100" alt="image" src="https://github.com/user-attachments/assets/f59f00c8-88c0-48cc-8505-6a7e2b8633f0" /># 實作十四：預存程序、函數與觸發程序 (資料庫邏輯自動化實戰)
 
 **授課教師：劉鎮豪**
 **課程：資料庫管理系統**
@@ -16,66 +16,74 @@
 ### 1. 預存程序 (Stored Procedures)
 預存程序是一組預先編譯好的 SQL 指令集合。它最大的優點是「只需編譯一次，即可多次執行」，且能接受參數傳入。
 
-  ```sql
-  USE kinmen_shop;
+```sql
+USE kinmen_shop;
 
-  -- 變更結束符號 (因為程序內部有多個分號，必須暫時改變結束符號)
-  DELIMITER //
+-- 變更結束符號 (因為程序內部有多個分號，必須暫時改變結束符號)
+DELIMITER //
 
-  -- 【實戰：自動調薪程序】傳入員工編號與加薪金額
-  CREATE PROCEDURE AdjustSalary(IN emp_id_in VARCHAR(10), IN bonus DECIMAL(10,2))
-  BEGIN
-      UPDATE employees SET salary = salary + bonus WHERE emp_id = emp_id_in;
-  END //
+-- 【實戰：自動調薪程序】傳入員工編號與加薪金額
+CREATE PROCEDURE AdjustSalary(IN emp_id_in VARCHAR(10), IN bonus DECIMAL(10,2))
+BEGIN
+    UPDATE employees SET salary = salary + bonus WHERE emp_id = emp_id_in;
+END //
 
-  DELIMITER ;
+DELIMITER ;
 
-  -- 呼叫執行程序
-  CALL AdjustSalary('E001', 2000);
-  ```
+-- 呼叫執行程序
+CALL AdjustSalary('E001', 2000);
+```
+
+<img width="365" height="92" alt="image" src="https://github.com/user-attachments/assets/fdb7b42a-9271-4d91-a873-8ccba2cf9942" />
+<img width="369" height="100" alt="image" src="https://github.com/user-attachments/assets/3935cc8b-d7da-42cf-9f0c-bd6a4b10f00c" />
 
 ### 2. 自定義函數 (Functions)
 函數與程序的差別在於：函數**必須**回傳一個值，且可以直接在 `SELECT` 語句中使用。
 
-  ```sql
-  DELIMITER //
+```sql
+DELIMITER //
 
-  -- 【實戰：計算折扣後價格函數】
-  CREATE FUNCTION GetDiscountPrice(original_price INT, discount_rate DECIMAL(3,2))
-  RETURNS INT
-  DETERMINISTIC
-  BEGIN
-      RETURN ROUND(original_price * discount_rate);
-  END //
+-- 【實戰：計算折扣後價格函數】
+CREATE FUNCTION GetDiscountPrice(original_price INT, discount_rate DECIMAL(3,2))
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    RETURN ROUND(original_price * discount_rate);
+END //
 
-  DELIMITER ;
+DELIMITER ;
 
-  -- 直接在查詢中使用函數
-  SELECT product_name, GetDiscountPrice(price, 0.9) AS '九折價' FROM products;
-  ```
+-- 直接在查詢中使用函數
+SELECT product_name, GetDiscountPrice(price, 0.9) AS '九折價' FROM products;
+```
+
+<img width="198" height="216" alt="image" src="https://github.com/user-attachments/assets/a404aeb7-916d-4ef8-9812-aefa065a1e66" />
 
 ### 3. 觸發程序 (Triggers)
 觸發程序是「被動」執行的。當資料表發生 `INSERT`、`UPDATE` 或 `DELETE` 時，資料庫會自動觸發預設好的動作。
 
+```sql
+-- 【實戰：自動庫存異動日誌】
+-- 當訂單明細有新增時，自動減少商品表的庫存量
+DELIMITER //
 
+CREATE TRIGGER update_stock_after_sale
+AFTER INSERT ON order_details
+FOR EACH ROW
+BEGIN
+    -- NEW 關鍵字代表剛剛新增的那筆訂單資料
+    UPDATE products 
+    SET stock = stock - NEW.qty 
+    WHERE product_id = NEW.product_id;
+END //
 
-  ```sql
-  -- 【實戰：自動庫存異動日誌】
-  -- 當訂單明細有新增時，自動減少商品表的庫存量
-  DELIMITER //
+DELIMITER ;
+```
 
-  CREATE TRIGGER update_stock_after_sale
-  AFTER INSERT ON order_details
-  FOR EACH ROW
-  BEGIN
-      -- NEW 關鍵字代表剛剛新增的那筆訂單資料
-      UPDATE products 
-      SET stock = stock - NEW.qty 
-      WHERE product_id = NEW.product_id;
-  END //
-
-  DELIMITER ;
-  ```
+<img width="325" height="110" alt="image" src="https://github.com/user-attachments/assets/4cab68aa-1344-4763-8750-80a97b16babb" />
+<img width="369" height="229" alt="image" src="https://github.com/user-attachments/assets/2f9ce3a1-97a4-4ed1-a7d3-45b07bbd097b" />
+<img width="319" height="130" alt="image" src="https://github.com/user-attachments/assets/b3da557f-3eda-4519-b494-43ced46e3ec4" />
+<img width="365" height="230" alt="image" src="https://github.com/user-attachments/assets/098871df-ac17-4407-a6a0-851cbc99820b" />
 
 > **💼 業界實務補充：**
 > 在金融系統或電商平台，觸發程序常用於「審計日誌 (Audit Log)」。例如：當有人修改了訂單價格，觸發程序會自動將「誰、在什麼時間、把價格從 A 改成 B」寫入一張秘密的 Log 表，這在資安查核時非常重要。
@@ -105,52 +113,56 @@
 
 請在 Spyder 開啟 `app.py`：
 
-  ```python
-  import streamlit as st
-  import pymysql
+```python
+import streamlit as st
+import pymysql
 
-  def get_connection():
-      return pymysql.connect(
-          host="127.0.0.1", user="root", password="1234", 
-          database="kinmen_shop", charset="utf8mb4"
-      )
+def get_connection():
+    return pymysql.connect(
+        host="127.0.0.1", user="root", password="1234", 
+        database="kinmen_shop", charset="utf8mb4"
+    )
 
-  st.title("🤖 金門特產店 - 自動化管理後台")
-  st.markdown("展示如何透過 Python 呼叫資料庫內部的預存程序 (Stored Procedures)。")
-  st.divider()
+st.title("🤖 金門特產店 - 自動化管理後台")
+st.markdown("展示如何透過 Python 呼叫資料庫內部的預存程序 (Stored Procedures)。")
+st.divider()
 
-  # --- 呼叫預存程序進行加薪 ---
-  st.header("💰 快速調薪系統")
+# --- 呼叫預存程序進行加薪 ---
+st.header("💰 快速調薪系統")
 
-  with st.form("salary_form"):
-      target_id = st.text_input("輸入員工編號")
-      bonus_amount = st.number_input("加薪金額", min_value=0, step=500)
-      
-      if st.form_submit_button("執行調薪程序"):
-          try:
-              conn = get_connection()
-              cursor = conn.cursor()
-              
-              # 💡 核心技巧：使用 callproc() 呼叫預存程序
-              # 參數 1：程序名稱；參數 2：傳入的參數元組 (tuple)
-              cursor.callproc('AdjustSalary', (target_id, bonus_amount))
-              
-              # 記得程序內部的 UPDATE 也需要 commit 才會生效
-              conn.commit()
-              st.success(f"✅ 程序執行成功！員工 {target_id} 已完成調薪。")
-              
-          except Exception as e:
-              st.error(f"❌ 執行失敗：{e}")
-          finally:
-              if 'conn' in locals(): conn.close()
+with st.form("salary_form"):
+    target_id = st.text_input("輸入員工編號")
+    bonus_amount = st.number_input("加薪金額", min_value=0, step=500)
+    
+    if st.form_submit_button("執行調薪程序"):
+        try:
+            conn = get_connection()
+            cursor = conn.cursor()
+            
+            # 💡 核心技巧：使用 callproc() 呼叫預存程序
+            # 參數 1：程序名稱；參數 2：傳入的參數元組 (tuple)
+            cursor.callproc('AdjustSalary', (target_id, bonus_amount))
+            
+            # 記得程序內部的 UPDATE 也需要 commit 才會生效
+            conn.commit()
+            st.success(f"✅ 程序執行成功！員工 {target_id} 已完成調薪。")
+            
+        except Exception as e:
+            st.error(f"❌ 執行失敗：{e}")
+        finally:
+            if 'conn' in locals(): conn.close()
 
-  # --- 觸發程序效果展示 ---
-  st.divider()
-  st.header("📦 庫存連動測試 (觸發程序)")
-  st.info("💡 說明：當你在此新增一筆訂單，資料庫的 Trigger 會自動去扣除商品表的庫存，不需在 Python 額外寫 UPDATE。")
+# --- 觸發程序效果展示 ---
+st.divider()
+st.header("📦 庫存連動測試 (觸發程序)")
+st.info("💡 說明：當你在此新增一筆訂單，資料庫的 Trigger 會自動去扣除商品表的庫存，不需在 Python 額外寫 UPDATE。")
 
-  # (此處可實作簡易的新增訂單表單，並在執行後查詢 products 表驗證庫存是否減少)
-  ```
+# (此處可實作簡易的新增訂單表單，並在執行後查詢 products 表驗證庫存是否減少)
+```
+
+<img width="366" height="92" alt="image" src="https://github.com/user-attachments/assets/733f8f77-9158-4fed-9a12-15636ff5e08d" />
+<img width="712" height="631" alt="image" src="https://github.com/user-attachments/assets/cba55ee0-420b-464c-aff6-ec7df3c94f7c" />
+<img width="369" height="99" alt="image" src="https://github.com/user-attachments/assets/b23d4b5f-49c2-4cc6-a7f0-77d88601272e" />
 
 ---
 
