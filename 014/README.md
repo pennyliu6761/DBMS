@@ -1,4 +1,4 @@
-<img width="369" height="100" alt="image" src="https://github.com/user-attachments/assets/f59f00c8-88c0-48cc-8505-6a7e2b8633f0" /># 實作十四：預存程序、函數與觸發程序 (資料庫邏輯自動化實戰)
+# 實作十四：預存程序、函數與觸發程序 (資料庫邏輯自動化實戰)
 
 **授課教師：劉鎮豪**
 **課程：資料庫管理系統**
