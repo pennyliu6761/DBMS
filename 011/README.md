@@ -248,3 +248,304 @@ with col_right:
       - 當選擇「店長」時，Python 程式去 `SELECT * FROM products` (顯示最原始、包含 cost 成本欄位的機密大表)。
       - 當選擇「工讀生」時，Python 程式改去 `SELECT * FROM view_safe_products` (只顯示安全檢視表)。
    * **過關提示**：透過簡單的 Python `if-else` 判斷式，動態改變傳給 `pd.read_sql()` 的 `query` 變數字串，你就能完美實作出業界最真實的「RBAC (角色權限控管)」系統！
+
+---
+
+# 實作十一補充：檢視表對外開放與權限管理 (最小權限原則 × 系統介接實戰)
+
+**授課教師：劉鎮豪**
+**課程：資料庫管理系統**
+**學校：國立金門大學**
+
+在上一節課，我們建立了 `view_safe_products`，成功把「進貨成本」藏起來。但問題來了：檢視表建好了，要怎麼安全地把它「開放」給另一支程式或外部系統使用？
+
+直接把 `root` 帳號密碼給外部系統？🚨 **這是資安大忌！**
+
+本單元我們將學習真實業界的做法：在 MySQL 層建立**專屬的唯讀帳號**，精準授權它只能存取特定的 View，再用 Python 以這個受限帳號連線，完成整個「安全介接鏈」。
+
+---
+
+## 🧭 本單元學習地圖
+
+```
+建立 View (上節課) 
+    ↓
+建立專屬 DB 帳號 (本節 Part 1)
+    ↓
+GRANT 精準授權 (本節 Part 2)
+    ↓
+Python 以受限帳號連線 (本節 Part 3)
+    ↓
+驗證邊界與錯誤處理 (本節 Part 4)
+```
+
+---
+
+## 📖 第一部分：為什麼不能用 root？
+
+| 帳號 | 能存取的範圍 | 風險 |
+|------|------------|------|
+| `root` | 整個 MySQL 伺服器的所有資料庫 | 外洩即全損 |
+| `readonly_pos` (本節課建立) | 僅 `kinmen_shop.view_safe_products` | 外洩也只能讀一張 View |
+
+**最小權限原則 (Principle of Least Privilege)**：給程式或人員「恰好夠用」的權限，不多一分。這是業界資安的基本守則，ISO 27001、GDPR 合規都要求這一點。
+
+---
+
+## 🛠️ 第二部分：建立帳號與授權 (在 MySQL Workbench 以 root 執行)
+
+### 步驟一：建立專屬帳號
+
+```sql
+-- 建立一個只能從本機登入的帳號，密碼設強一點
+-- 'readonly_pos'@'localhost' 的意思：
+--   帳號名稱 = readonly_pos
+--   只允許從本機 (localhost) 連線，無法從外部 IP 登入
+CREATE USER 'readonly_pos'@'localhost' IDENTIFIED BY 'SecurePass2024!';
+```
+
+> **💡 帳號後面為什麼要加 `@'localhost'`？**
+> MySQL 的帳號是「帳號 + 來源 IP」的組合。
+> - `'app'@'localhost'` — 只有本機可以用這個帳號登入
+> - `'app'@'%'` — 任意 IP 都可以登入（風險較高，需搭配防火牆）
+> - `'app'@'192.168.1.50'` — 只允許指定的應用程式伺服器 IP
+
+### 步驟二：授予精準權限
+
+```sql
+-- 只給 SELECT 權限，且只限定在 kinmen_shop 資料庫的 view_safe_products
+GRANT SELECT ON kinmen_shop.view_safe_products TO 'readonly_pos'@'localhost';
+
+-- 若有多張 View 需要開放，逐一授權：
+GRANT SELECT ON kinmen_shop.view_customer_orders TO 'readonly_pos'@'localhost';
+
+-- 讓權限立即生效
+FLUSH PRIVILEGES;
+```
+
+### 步驟三：確認授權結果
+
+```sql
+-- 查看這個帳號目前擁有哪些權限
+SHOW GRANTS FOR 'readonly_pos'@'localhost';
+```
+
+執行後應該看到：
+```
+GRANT SELECT ON `kinmen_shop`.`view_safe_products` TO `readonly_pos`@`localhost`
+GRANT SELECT ON `kinmen_shop`.`view_customer_orders` TO `readonly_pos`@`localhost`
+```
+
+### 步驟四：撤銷權限 (REVOKE)
+
+```sql
+-- 如果工讀生離職，或系統下線，立即撤銷
+REVOKE SELECT ON kinmen_shop.view_safe_products FROM 'readonly_pos'@'localhost';
+
+-- 如果要完全刪除帳號
+DROP USER IF EXISTS 'readonly_pos'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+> **⚠️ 注意：** `REVOKE` 只撤銷權限，帳號還在。`DROP USER` 才是連帳號一起刪除。離職處理通常先 `REVOKE` 確認業務不受影響，再 `DROP USER`。
+
+---
+
+## 📖 第三部分：理解「授權 View」vs「授權 Table」的差異
+
+這是本節課最重要的觀念：
+
+```sql
+-- ❌ 危險做法：直接授權原始資料表
+GRANT SELECT ON kinmen_shop.products TO 'readonly_pos'@'localhost';
+-- 結果：外部程式可以 SELECT * FROM products → 看到 cost 成本欄位！
+
+-- ✅ 安全做法：只授權 View
+GRANT SELECT ON kinmen_shop.view_safe_products TO 'readonly_pos'@'localhost';
+-- 結果：外部程式只能看到 view_safe_products 定義的欄位，cost 永遠隱藏
+```
+
+**結論：View 是資料的「公開介面」，Base Table 是「私有實作」。** 這個設計概念和軟體工程的 API 設計思維完全一致。
+
+---
+
+## 💻 第四部分：Python 以受限帳號連線並讀取 View
+
+### 4-1 驗證帳號確實受限 (先在 Workbench 測試)
+
+用 `readonly_pos` 帳號連線後，試著存取它沒被授權的東西：
+
+```sql
+-- 用 readonly_pos 帳號執行以下，應該全部報錯
+SELECT * FROM products;           -- ❌ 沒有這張表的權限
+INSERT INTO view_safe_products ...; -- ❌ 只有 SELECT，沒有 INSERT
+SELECT * FROM kinmen_shop.orders; -- ❌ 完全不認識這張表
+```
+
+確認邊界清楚後，再接 Python。
+
+### 4-2 完整 Python 介接程式
+
+```python
+import streamlit as st
+import pymysql
+import pandas as pd
+
+# ============================================================
+# 連線設定 — 使用受限帳號，不再是 root！
+# ============================================================
+def get_readonly_connection():
+    """以唯讀帳號建立連線，只能存取被授權的 View"""
+    return pymysql.connect(
+        host="127.0.0.1",
+        user="readonly_pos",          # ← 受限帳號
+        password="SecurePass2024!",   # ← 對應密碼
+        database="kinmen_shop",
+        charset="utf8mb4"
+    )
+
+# ============================================================
+# Streamlit 前端
+# ============================================================
+st.set_page_config(layout="wide")
+st.title("🔌 外部系統介接示範 (最小權限原則)")
+st.markdown("""
+連線帳號：`readonly_pos`　｜　授權範圍：僅 `view_safe_products`、`view_customer_orders`  
+> 這模擬的是：一支外部的 POS 程式或合作夥伴系統，以受限帳號讀取我們開放的資料介面。
+""")
+st.divider()
+
+tab1, tab2, tab3 = st.tabs(["📋 商品型錄", "📦 訂單紀錄", "🚧 越權存取測試"])
+
+# --- Tab 1：讀取被授權的 View ---
+with tab1:
+    st.subheader("從 view_safe_products 讀取（有權限）")
+    try:
+        conn = get_readonly_connection()
+        df = pd.read_sql("SELECT * FROM view_safe_products", conn)
+        st.success(f"✅ 成功讀取 {len(df)} 筆商品資料")
+        st.dataframe(df, use_container_width=True)
+        
+        # 明確顯示「看不到的欄位」
+        st.info("ℹ️ 注意：此查詢結果中沒有 `cost`（進貨成本）欄位，該欄位對此帳號完全不可見。")
+    except Exception as e:
+        st.error(f"連線失敗：{e}")
+    finally:
+        if 'conn' in locals(): conn.close()
+
+# --- Tab 2：讀取另一張被授權的 View ---
+with tab2:
+    st.subheader("從 view_customer_orders 讀取（有權限）")
+    try:
+        conn = get_readonly_connection()
+        df = pd.read_sql("SELECT * FROM view_customer_orders", conn)
+        st.success(f"✅ 成功讀取 {len(df)} 筆訂單資料")
+        st.dataframe(df, use_container_width=True)
+    except Exception as e:
+        st.error(f"連線失敗：{e}")
+    finally:
+        if 'conn' in locals(): conn.close()
+
+# --- Tab 3：越權存取測試（教學用） ---
+with tab3:
+    st.subheader("🚧 越權存取測試（觀察錯誤訊息）")
+    st.warning("以下按鈕會故意存取沒有權限的資源，用來驗證帳號邊界是否真的有效。")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("嘗試讀取 products 原始表（含成本）"):
+            try:
+                conn = get_readonly_connection()
+                df = pd.read_sql("SELECT * FROM products", conn)
+                # 如果走到這裡，代表授權設定有問題！
+                st.error("⚠️ 警告：竟然讀到了！請檢查 GRANT 設定是否正確。")
+                st.dataframe(df)
+            except pymysql.err.OperationalError as e:
+                if e.args[0] == 1142:  # SELECT command denied
+                    st.success("✅ 權限邊界正常！資料庫拒絕存取原始表。")
+                    st.code(f"MySQL Error 1142: {e.args[1]}", language="text")
+                else:
+                    st.error(f"其他錯誤：{e}")
+            finally:
+                if 'conn' in locals(): conn.close()
+    
+    with col2:
+        if st.button("嘗試 INSERT 進 View（唯讀帳號）"):
+            try:
+                conn = get_readonly_connection()
+                cursor = conn.cursor()
+                cursor.execute(
+                    "INSERT INTO view_safe_products (product_id, product_name, price) VALUES (%s, %s, %s)",
+                    ('P099', '測試商品', 100)
+                )
+                conn.commit()
+                st.error("⚠️ 警告：INSERT 竟然成功了！請確認 GRANT 只有 SELECT。")
+            except pymysql.err.OperationalError as e:
+                if e.args[0] == 1142:  # INSERT command denied
+                    st.success("✅ 權限邊界正常！唯讀帳號無法寫入。")
+                    st.code(f"MySQL Error 1142: {e.args[1]}", language="text")
+                else:
+                    st.error(f"其他錯誤：{e}")
+            finally:
+                if 'cursor' in locals(): cursor.close()
+                if 'conn' in locals(): conn.close()
+```
+
+---
+
+## ❓ 第五部分：常見問題與排解 (FAQ)
+
+1. **Q: 授權給 View 的帳號，能不能「穿透」存取底層的 Base Table？**
+   * A: 不行。MySQL 對 View 的授權是獨立計算的。`readonly_pos` 被授予 `SELECT ON view_safe_products`，但對 `products` 這張 Base Table 完全沒有權限。即使他知道 Base Table 的名稱，直接查詢也會被 Error 1142 擋下。這就是授權在 View 層的安全意義。
+
+2. **Q: Python 程式的帳號密碼寫在程式碼裡，這樣安全嗎？**
+   * A: 教學環境可以接受，但正式上線時應改用**環境變數**或**.env 設定檔**，並加入 `.gitignore`，絕對不能把密碼 commit 進 Git。Python 可用 `python-dotenv` 套件讀取 `.env`。這是業界強制要求的做法。
+
+3. **Q: 可以同時授權給多個帳號嗎？**
+   * A: 可以。例如同時建立 `pos_cashier`（只能讀商品 View）、`report_system`（可讀訂單統計 View）、`partner_api`（只能讀公開型錄 View）。每個系統或角色有自己的帳號，是真實業界的標準做法，稱為 **Service Account 管理**。
+
+4. **Q: `FLUSH PRIVILEGES` 是什麼？每次都要下嗎？**
+   * A: `GRANT` / `REVOKE` / `CREATE USER` 這些指令通常會自動生效，不一定需要 `FLUSH PRIVILEGES`。但若直接修改 `mysql.user` 系統資料表（進階情境），則必須執行。養成下的習慣是安全的。
+
+---
+
+## 📝 第六部分：實戰演練
+
+### 🟢 基礎題
+
+1. **建立報表帳號：** 建立一個名為 `report_viewer` 的帳號，授予他讀取 `view_category_value`（上節課進階題建立的類別庫存價值 View）的權限，並用 `SHOW GRANTS` 確認。
+
+2. **測試邊界：** 用 `report_viewer` 帳號連線 Workbench，試著 `SELECT * FROM products` 與 `SELECT * FROM view_category_value`，截圖兩個不同的結果（一個失敗、一個成功）。
+
+### 🟡 進階題
+
+3. **Python 動態帳號切換：** 修改 Part 4 的程式，在 `st.sidebar` 加入帳號選擇（`root` / `readonly_pos` / `report_viewer`），根據選擇動態切換連線帳號，並顯示「當前帳號可存取的 View 清單」。
+
+4. **撤銷與重授：** 對 `readonly_pos` 執行 `REVOKE`，用 Python 程式測試連線後會收到什麼錯誤（Error Code 是什麼？），再 `GRANT` 回來，驗證連線恢復正常。
+
+### 😈 魔王挑戰題
+
+5. **多租戶資料隔離：** 假設我們有兩家加盟店共用同一個資料庫，各自只能看自己的訂單資料。請設計：
+   - 兩個 View：`view_store_A_orders` 與 `view_store_B_orders`（用 `WHERE store_id = 'A'` 篩選）
+   - 兩個帳號：`app_store_a` 與 `app_store_b`，各自只被授予對應的 View
+   - 用 Python 驗證：`app_store_a` 讀不到 Store B 的訂單，`app_store_b` 讀不到 Store A 的訂單
+
+   這個架構是 SaaS 系統「多租戶隔離」的最基礎實作，也是面試常被問到的設計題！
+
+---
+
+## 🗺️ 知識延伸：完整的安全介接鏈全貌
+
+```
+[外部系統 / Python 程式]
+        ↓ 以 readonly_pos 帳號連線 (只有 SELECT 權限)
+[MySQL 帳號權限層]
+        ↓ 只開放特定 View 的存取
+[View 層 (虛擬資料表)]
+        ↓ View 定義了哪些欄位、哪些列可以被看到
+[Base Table 層 (原始資料)]
+        ← cost、密碼、個資等機密欄位永遠不出這一層
+```
+
+每一層都是一道防線。真實的生產環境中，還會在最外層加上 API Gateway、JWT Token 驗證等應用層防護，但資料庫層的帳號權限管理永遠是最後一道、也是最可靠的一道防線。
